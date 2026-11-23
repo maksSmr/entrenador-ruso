@@ -1,0 +1,102 @@
+name: CI — SaaS para maestros de idiomas
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (Node + PostgreSQL)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: entrenador_ruso
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/entrenador_ruso
+      JWT_SECRET: secreto-solo-para-ci-no-usar-en-produccion
+      DB_SSL: 'false'
+      FRONTEND_URL: http://localhost:5173
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: backend
+        run: npm ci
+
+      - name: Auditoría de seguridad
+        working-directory: backend
+        run: npm audit --audit-level=high
+
+      - name: Pruebas unitarias y de integración
+        working-directory: backend
+        run: npm test
+
+      - name: Aplicar migraciones y semillas a PostgreSQL real
+        run: |
+          for archivo in \
+            backend/migraciones/001_crear_tablas.sql \
+            backend/migraciones/002_verificacion_correo.sql \
+            backend/migraciones/003_herramientas_ruso.sql \
+            backend/migraciones/004_lecciones_libro.sql \
+            backend/migraciones/005_webhook_idempotencia.sql \
+            backend/migraciones/006_respuestas_repaso.sql \
+            backend/semillas/001_datos_ejemplo.sql
+          do
+            echo "Aplicando $archivo"
+            PGPASSWORD=postgres psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$archivo"
+          done
+
+      - name: Comprobar que las tablas quedaron aisladas por maestro
+        run: |
+          PGPASSWORD=postgres psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c \
+            "SELECT c.nombre, u.nombre AS maestro, COUNT(i.usuario_id) AS alumnos FROM cursos c JOIN usuarios u ON u.id=c.maestro_id LEFT JOIN inscripciones i ON i.curso_id=c.id GROUP BY c.id,u.id ORDER BY c.id;"
+
+  frontend:
+    name: Frontend (Vite + Jest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: frontend
+        run: npm ci
+
+      - name: Auditoría de seguridad
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+      - name: Pruebas de interfaz
+        working-directory: frontend
+        run: npm test
+
+      - name: Compilar para producción
+        working-directory: frontend
+        run: npm run build
