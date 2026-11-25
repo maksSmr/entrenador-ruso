@@ -60,9 +60,12 @@ export default function CursoAlumno() {
         <div className="fila-acciones">
           {curso ? <Insignia tono="indigo">{curso.idioma || 'Ruso'}</Insignia> : null}
           <Link className="enlace-boton" to={`/repaso/${id}`}>
-            Repasar hoy
+            Repasar pendientes de hoy
           </Link>
         </div>
+        <p className="texto-suave texto-pequeno">
+          El repaso diario muestra solo las tarjetas pendientes; «Practicar tarjetas» incluye todas las de la lección.
+        </p>
 
         {cargando ? <EstadoCarga mensaje="Cargando lecciones…" /> : null}
         {error ? <EstadoError mensaje={error} onReintentar={cargar} /> : null}
@@ -86,11 +89,14 @@ export default function CursoAlumno() {
                   {leccion.descripcion ? <p className="texto-suave">{leccion.descripcion}</p> : null}
                   <BarraProgreso valor={porcentaje} maximo={100} etiqueta={`Avance en ${leccion.titulo}`} />
                   <div className="fila-acciones">
-                    <Link className="enlace-boton" to={`/quiz/${leccion.id}`}>
-                      Hacer quiz
+                    <Link className="enlace-boton" to={`/lecciones/${leccion.id}/tarjetas?practica=1`}>
+                      Practicar tarjetas
                     </Link>
                     <Link className="enlace-sutil" to={`/lecciones/${leccion.id}/tarjetas`}>
                       Ver tarjetas
+                    </Link>
+                    <Link className="enlace-sutil" to={`/quiz/${leccion.id}`}>
+                      Hacer quiz
                     </Link>
                   </div>
                 </article>

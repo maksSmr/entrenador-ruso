@@ -81,6 +81,8 @@ Ves tu **XP**, tu **racha de días**, tu **nivel** y tu progreso. Cada 100 XP su
 
 Aparece la lista de lecciones publicadas. Las que tu maestro marcó para hoy llevan la etiqueta «Nueva de la clase». Las lecciones en borrador no existen para ti.
 
+En cada lección tienes tres acciones claras: **Practicar tarjetas** (todas las de esa lección, una por una), **Ver tarjetas** (el listado completo para consultar) y **Hacer quiz** (preguntas aleatorias). El botón «Repasar pendientes de hoy» de arriba es distinto: solo trae lo que toca hoy.
+
 ### 2.4 Repasas: la parte que más aprendes
 
 Entras a *Repasar* y ves tarjetas tipo flashcard:
