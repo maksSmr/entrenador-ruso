@@ -31,6 +31,8 @@ export const entorno = {
     : [...new Set([frontendUrl, ...origenesLocales])],
   resendApiKey: process.env.RESEND_API_KEY ?? '',
   correoRemitente: process.env.CORREO_REMITENTE ?? 'Entrenador de Idiomas <onboarding@resend.dev>',
+  gmailUser: process.env.GMAIL_USER ?? '',
+  gmailAppPassword: process.env.GMAIL_APP_PASSWORD ?? '',
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
   stripePrecioPro: process.env.STRIPE_PRECIO_PRO ?? '',
