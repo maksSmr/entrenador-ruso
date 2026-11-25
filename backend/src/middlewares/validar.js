@@ -21,7 +21,12 @@ export function validar(esquema) {
     const resultado = esquema.safeParse(req.body);
 
     if (!resultado.success) {
-      return next(new ErrorApi(400, 'Datos inválidos', 'validacion', resultado.error.flatten()));
+      const detalles = resultado.error.flatten().fieldErrors;
+      const resumen = Object.entries(detalles)
+        .map(([campo, mensajes]) => `${campo}: ${mensajes.join(', ')}`)
+        .join('; ');
+      const mensaje = resumen ? `Datos inválidos (${resumen})` : 'Datos inválidos';
+      return next(new ErrorApi(400, mensaje, 'validacion', detalles));
     }
 
     req.body = resultado.data;

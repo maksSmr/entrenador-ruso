@@ -3,6 +3,8 @@ import { generarToken, hashToken } from '../src/utilidades/tokens.js';
 import {
   registroAlumnoEsquema,
   registroMaestroEsquema,
+  respuestaRepasoEsquema,
+  resultadoQuizEsquema,
 } from '../src/utilidades/esquemas.js';
 
 describe('tokens de verificación', () => {
@@ -39,5 +41,25 @@ describe('validación de registros', () => {
     expect(registroAlumnoEsquema.safeParse({
       nombre: 'Luis', email: 'luis@ejemplo.es', contrasena: '12345678', codigo_invitacion: 'ABC',
     }).success).toBe(false);
+  });
+});
+
+describe('ids que llegan como texto', () => {
+  test('acepta BIGINT de PostgreSQL y convierte el id a número', () => {
+    expect(respuestaRepasoEsquema.parse({ tarjeta_id: '8', acerto: true })).toEqual({
+      tarjeta_id: 8,
+      acerto: true,
+    });
+    expect(resultadoQuizEsquema.parse({ leccion_id: '12', puntaje: 3, total: 4 })).toEqual({
+      leccion_id: 12,
+      puntaje: 3,
+      total: 4,
+    });
+  });
+
+  test('sigue rechazando ids que no son enteros positivos', () => {
+    expect(respuestaRepasoEsquema.safeParse({ tarjeta_id: 'abc', acerto: true }).success).toBe(false);
+    expect(respuestaRepasoEsquema.safeParse({ tarjeta_id: '0', acerto: true }).success).toBe(false);
+    expect(resultadoQuizEsquema.safeParse({ leccion_id: '-1', puntaje: 0, total: 4 }).success).toBe(false);
   });
 });

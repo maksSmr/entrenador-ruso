@@ -78,13 +78,17 @@ export const actualizarTarjetaEsquema = crearTarjetaEsquema.partial().refine(
   { message: 'Envía al menos un campo para actualizar' },
 );
 
+// node-postgres devuelve los BIGINT como texto ("8"), y los ids de la URL también llegan como texto.
+// z.coerce.number() acepta ambos y los convierte a entero antes de pasarlos a la consulta.
+const idNumerico = z.coerce.number().int().positive();
+
 export const respuestaRepasoEsquema = z.object({
-  tarjeta_id: z.number().int().positive(),
+  tarjeta_id: idNumerico,
   acerto: z.boolean(),
 });
 
 export const resultadoQuizEsquema = z.object({
-  leccion_id: z.number().int().positive(),
+  leccion_id: idNumerico,
   puntaje: z.number().int().min(0),
   total: z.number().int().positive(),
 });
