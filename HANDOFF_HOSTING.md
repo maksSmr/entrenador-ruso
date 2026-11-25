@@ -45,7 +45,7 @@ NODE_ENV=development
 RESEND_API_KEY=
 CORREO_REMITENTE=Entrenador de Idiomas <onboarding@resend.dev>
 GEMINI_API_KEY=
-GEMINI_MODELO=gemini-2.5-flash
+GEMINI_MODELO=gemini-3.8-flash
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PRECIO_PRO=
@@ -107,7 +107,7 @@ La BD Neon ya está lista con datos y con la migración `007` aplicada. No hay q
 | `RESEND_API_KEY` | vacío al inicio; luego clave de Resend |
 | `CORREO_REMITENTE` | `Entrenador de Idiomas <onboarding@resend.dev>` |
 | `GEMINI_API_KEY` | vacío al inicio; luego clave de Google AI Studio |
-| `GEMINI_MODELO` | `gemini-2.5-flash` |
+| `GEMINI_MODELO` | `gemini-3.8-flash` |
 | `STRIPE_SECRET_KEY` | vacío al inicio; luego `sk_test_...` |
 | `STRIPE_WEBHOOK_SECRET` | vacío al inicio; luego `whsec_...` |
 | `STRIPE_PRECIO_PRO` | vacío al inicio; luego `price_...` |
@@ -140,9 +140,10 @@ La BD Neon ya está lista con datos y con la migración `007` aplicada. No hay q
 ### Paso 5b — Gemini (opcional pero suma puntos)
 
 1. En Google AI Studio crea una clave API y cópiala en `GEMINI_API_KEY` de Render. Reinicia el servicio.
-2. Entra como maestro, abre una lección y usa «Generar tarjetas con IA desde un documento» con un PDF o DOCX pequeño.
-3. Edita, descarta y guarda las sugerencias. La clave nunca se envía al navegador: solo llama a Gemini el backend.
-4. Sin clave, el botón devuelve el aviso `gemini_sin_configuracion` y el resto del editor sigue funcionando.
+2. Para comprobar qué modelos ve esa clave, ejecuta en local `cd backend; node scripts/listarModelosGemini.js` (o `npm run gemini:modelos`). El modelo por defecto es `gemini-3.8-flash`; si no aparece como compatible, ajusta `GEMINI_MODELO`.
+3. Entra como maestro, abre una lección y usa «Generar tarjetas con IA desde un documento» con un PDF o DOCX pequeño.
+4. Edita, descarta y guarda las sugerencias. La clave nunca se envía al navegador: solo llama a Gemini el backend.
+5. Ante picos de demanda (`503`/`429`) el backend reintenta con pausas de 1 s, 2 s y 4 s; si sigue fallando, el aviso es legible y no incluye la clave. Sin clave, responde `gemini_sin_configuracion` y el editor sigue funcionando.
 
 ### Paso 6 — GitHub Actions
 

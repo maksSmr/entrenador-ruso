@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { GEMINI_MODELO_POR_DEFECTO } from './gemini.js';
 
 const requeridas = ['DATABASE_URL', 'JWT_SECRET'];
 const faltantes = requeridas.filter((nombre) => !process.env[nombre]);
@@ -34,5 +35,5 @@ export const entorno = {
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
   stripePrecioPro: process.env.STRIPE_PRECIO_PRO ?? '',
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
-  geminiModelo: process.env.GEMINI_MODELO ?? 'gemini-2.5-flash',
+  geminiModelo: process.env.GEMINI_MODELO || GEMINI_MODELO_POR_DEFECTO,
 };

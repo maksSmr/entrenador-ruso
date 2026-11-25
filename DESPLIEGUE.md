@@ -5,7 +5,9 @@ Todo el código ya está preparado para desplegarse sin servidor propio. Solo ha
 ## 1. Lo que ya está resuelto en el código
 
 - `backend/src/app.js`: CORS acepta `FRONTEND_URL` y, en desarrollo, los puertos locales `5173`/`4173`.
-- `backend/src/config/entorno.js`: `PORT` usa `process.env.PORT || 3000`; añade `NODE_ENV`, `GEMINI_API_KEY` y `GEMINI_MODELO`.
+- `backend/src/config/entorno.js`: `PORT` usa `process.env.PORT || 3000`; añade `NODE_ENV`, `GEMINI_API_KEY` y `GEMINI_MODELO` (por defecto `gemini-3.8-flash`).
+- `backend/src/servicios/gemini.servicio.js`: reintenta automáticamente los `503`/`429` con pausas de 1 s, 2 s y 4 s; si persisten, devuelve un aviso claro sin secretos.
+- `backend/scripts/listarModelosGemini.js`: consulta qué modelos ve tu clave y cuáles permiten `generateContent`.
 - `backend/src/servicios/correo.js`: con Resend y `NODE_ENV=production` envía correos reales; sin clave o en desarrollo imprime el enlace y no rompe el registro.
 - `frontend/vite.config.js` y `frontend/src/servicios/api.js`: `VITE_API_URL` se lee al compilar, con respaldo `http://localhost:3000`.
 - Secretos: solo se leen en el backend. Ningún `.env` se sube a Git.
@@ -26,7 +28,7 @@ Todo el código ya está preparado para desplegarse sin servidor propio. Solo ha
 | `RESEND_API_KEY` | no | clave de Resend |
 | `CORREO_REMITENTE` | no | `Entrenador de Idiomas <onboarding@resend.dev>` |
 | `GEMINI_API_KEY` | no | clave de Google AI Studio |
-| `GEMINI_MODELO` | no | `gemini-2.5-flash` |
+| `GEMINI_MODELO` | no | `gemini-3.8-flash` (se puede sobreescribir) |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRECIO_PRO` | no | modo prueba |
 
 ### Frontend (Vercel → Environment Variables)
@@ -34,6 +36,18 @@ Todo el código ya está preparado para desplegarse sin servidor propio. Solo ha
 | Variable | Valor |
 |---|---|
 | `VITE_API_URL` | `https://TU-API.onrender.com` (sin barra final) |
+
+### Diagnóstico de Gemini
+
+Desde `backend`, con `GEMINI_API_KEY` ya puesta en `.env`:
+
+```powershell
+cd backend
+node scripts/listarModelosGemini.js
+# Equivalente: npm run gemini:modelos
+```
+
+Imprime los nombres de modelos disponibles para esa clave y marca cuáles soportan `generateContent`. Si `GEMINI_MODELO` no aparece como compatible, cámbialo en `.env` (o en Render) y reinicia. El script no imprime la clave.
 
 ## 3. Migraciones SQL
 

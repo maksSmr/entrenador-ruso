@@ -150,5 +150,6 @@ La app te recuerda justo lo que estabas a punto de olvidar. Por eso la racha eng
 
 - Los correos se **simulan**: el enlace de verificación se imprime en la terminal del backend, no llega a Gmail.
 - La generación con IA necesita `GEMINI_API_KEY` en el backend. Sin clave, el botón responde con un aviso claro; no rompe el editor.
+- Si Google está saturado por unos segundos, el backend reintenta automáticamente antes de mostrar el aviso; no hace falta recargar la página.
 - Stripe está en **modo prueba**: usa tarjetas de prueba, no reales.
 - Usuarios de ejemplo (contraseña `123456`, ya verificados): `ana@ejemplo.es` (maestra, curso `RUSO123`), `boris@ejemplo.es` (maestro, curso `VIAJE99`), `lucia@ejemplo.es`, `diego@ejemplo.es` y `marta@ejemplo.es`.

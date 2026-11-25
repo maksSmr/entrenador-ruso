@@ -1,8 +1,21 @@
 import { entorno } from '../config/entorno.js';
+import {
+  GEMINI_ESPERAS_REINTENTO_MS,
+  GEMINI_MODELO_POR_DEFECTO,
+} from '../config/gemini.js';
 import { ErrorApi } from '../utilidades/errorApi.js';
 
 const MAX_SUGERENCIAS = 24;
 const LIMITE_CAMPO = 500;
+const ESTADOS_REINTENTABLES = new Set([429, 503]);
+
+const esperar = (milisegundos) => new Promise((resolver) => setTimeout(resolver, milisegundos));
+
+/** Evita que la clave aparezca en los logs si el proveedor la repite en el error. */
+function ocultarClave(texto) {
+  const seguro = String(texto ?? '');
+  return entorno.geminiApiKey ? seguro.replaceAll(entorno.geminiApiKey, '[REDACTED]') : seguro;
+}
 
 const INSTRUCCION = `Eres profesor de ruso. A partir del texto de un libro o apunte, propón tarjetas de vocabulario para alumnos hispanohablantes.
 Reglas:
@@ -81,10 +94,13 @@ export function parsearRespuesta(textoRespuesta) {
 }
 
 /**
- * Llama a la API de Gemini. `fetchFn` se inyecta para poder probarlo sin red.
- * La clave viaja solo en el servidor: nunca se devuelve al frontend.
+ * Llama a la API de Gemini. `fetchFn` y `esperarFn` se inyectan para probarlo sin red ni esperas reales.
+ * Ante 503/429 reintenta con pausas de 1 s, 2 s y 4 s. La clave viaja solo en el servidor.
  */
-export async function generarSugerencias(texto, { fetchFn = globalThis.fetch } = {}) {
+export async function generarSugerencias(
+  texto,
+  { fetchFn = globalThis.fetch, esperarFn = esperar } = {},
+) {
   if (!entorno.geminiApiKey) {
     throw new ErrorApi(
       503,
@@ -125,36 +141,74 @@ export async function generarSugerencias(texto, { fetchFn = globalThis.fetch } =
     },
   };
 
-  const modelo = encodeURIComponent(entorno.geminiModelo || 'gemini-2.5-flash');
+  const modelo = encodeURIComponent(entorno.geminiModelo || GEMINI_MODELO_POR_DEFECTO);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${encodeURIComponent(entorno.geminiApiKey)}`;
+  const opciones = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cuerpo),
+  };
 
-  let respuesta;
-  try {
-    respuesta = await fetchFn(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cuerpo),
-    });
-  } catch (error) {
-    throw new ErrorApi(502, 'No se pudo contactar con Gemini. Inténtalo de nuevo.', 'gemini_error');
+  for (let intento = 0; intento <= GEMINI_ESPERAS_REINTENTO_MS.length; intento += 1) {
+    let respuesta;
+    try {
+      respuesta = await fetchFn(url, opciones);
+    } catch {
+      throw new ErrorApi(502, 'No se pudo contactar con Gemini. Inténtalo de nuevo.', 'gemini_error');
+    }
+
+    if (respuesta?.ok) {
+      let datos;
+      try {
+        datos = await respuesta.json();
+      } catch {
+        throw new ErrorApi(502, 'Gemini devolvió una respuesta inesperada', 'gemini_respuesta_invalida');
+      }
+
+      const textoGenerado = (datos?.candidates?.[0]?.content?.parts ?? [])
+        .map((parte) => parte?.text ?? '')
+        .join('');
+      return parsearRespuesta(textoGenerado);
+    }
+
+    const estado = Number(respuesta?.status);
+    let detalle = '';
+    try {
+      detalle = await respuesta.text();
+    } catch {
+      detalle = '';
+    }
+
+    const reintentable = ESTADOS_REINTENTABLES.has(estado);
+    if (reintentable && intento < GEMINI_ESPERAS_REINTENTO_MS.length) {
+      const pausa = GEMINI_ESPERAS_REINTENTO_MS[intento];
+      console.warn(
+        `Gemini respondió ${estado} con el modelo ${modelo}; reintentando en ${pausa} ms (${intento + 1}/${GEMINI_ESPERAS_REINTENTO_MS.length})`,
+      );
+      await esperarFn(pausa);
+      continue;
+    }
+
+    // Diagnóstico en el servidor: se recorta y se oculta la clave antes de imprimir.
+    console.error('Gemini respondió', estado, ocultarClave(detalle).slice(0, 200));
+    if (reintentable) {
+      throw new ErrorApi(
+        503,
+        'Gemini está temporalmente saturado o alcanzó el límite de peticiones. Inténtalo de nuevo en unos segundos.',
+        'gemini_no_disponible',
+      );
+    }
+    throw new ErrorApi(
+      502,
+      'Gemini rechazó la solicitud. Revisa la clave y el modelo configurados.',
+      'gemini_error',
+    );
   }
 
-  if (!respuesta.ok) {
-    const detalle = await respuesta.text().catch(() => '');
-    // Se registra en el servidor para diagnosticar, sin filtrar la clave en la respuesta.
-    console.error('Gemini respondió', respuesta.status, detalle.slice(0, 300));
-    throw new ErrorApi(502, 'Gemini rechazó la solicitud. Revisa la clave de API.', 'gemini_error');
-  }
-
-  let datos;
-  try {
-    datos = await respuesta.json();
-  } catch {
-    throw new ErrorApi(502, 'Gemini devolvió una respuesta inesperada', 'gemini_respuesta_invalida');
-  }
-
-  const textoGenerado = (datos?.candidates?.[0]?.content?.parts ?? [])
-    .map((parte) => parte?.text ?? '')
-    .join('');
-  return parsearRespuesta(textoGenerado);
+  // Llegar aquí sería un error de lógica del bucle; se devuelve el mismo aviso legible.
+  throw new ErrorApi(
+    503,
+    'Gemini está temporalmente saturado. Inténtalo de nuevo en unos segundos.',
+    'gemini_no_disponible',
+  );
 }
