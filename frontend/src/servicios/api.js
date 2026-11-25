@@ -210,6 +210,10 @@ export function responderRepaso(datos, token) {
   return peticion('/repaso/respuesta', { metodo: 'POST', cuerpo: datos, token });
 }
 
+export function reiniciarRepaso(cursoId, token) {
+  return peticion(`/cursos/${cursoId}/repaso/reiniciar`, { metodo: 'POST', token });
+}
+
 /* -------------------------- PANELES Y PLAN ------------------------------ */
 
 export function panelAlumno(token) {
@@ -269,6 +273,7 @@ export default {
   enviarResultadoQuiz,
   listarRepaso,
   responderRepaso,
+  reiniciarRepaso,
   panelAlumno,
   panelMaestro,
   reporteMaestro,

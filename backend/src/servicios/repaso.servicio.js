@@ -10,7 +10,8 @@ export async function repasoDeHoy(cursoId, usuarioId) {
     `SELECT t.id, t.palabra, t.transliteracion, t.traduccion,
             t.imagen_url, t.acento_posicion, t.ejemplo_ruso,
             COALESCE(p.caja, 1) AS caja,
-            COALESCE(p.proxima_revision, CURRENT_DATE) AS proxima_revision
+            COALESCE(p.proxima_revision, CURRENT_DATE) AS proxima_revision,
+            COALESCE(p.sin_xp, false) AS sin_xp
        FROM tarjetas t
        JOIN lecciones l ON l.id = t.leccion_id AND l.publicada = true
        LEFT JOIN progreso_tarjetas p
@@ -40,13 +41,15 @@ export async function responder(tarjetaId, acerto, usuarioId, fecha = new Date()
     if (!rows.length) throw noEncontrado();
 
     const actual = await cliente.query(
-      'SELECT caja FROM progreso_tarjetas WHERE usuario_id = $1 AND tarjeta_id = $2',
+      'SELECT caja, sin_xp FROM progreso_tarjetas WHERE usuario_id = $1 AND tarjeta_id = $2',
       [usuarioId, tarjetaId],
     );
     const cajaActual = actual.rows.length ? actual.rows[0].caja : 1;
+    const sinXp = Boolean(actual.rows[0]?.sin_xp);
     const destino = siguienteRevision(cajaActual, acerto, fecha);
 
     await cliente.query(
+      // No sobrescribimos sin_xp: una vez reiniciada, esa tarjeta no vuelve a dar XP.
       `INSERT INTO progreso_tarjetas (usuario_id, tarjeta_id, caja, proxima_revision)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (usuario_id, tarjeta_id)
@@ -66,7 +69,7 @@ export async function responder(tarjetaId, acerto, usuarioId, fecha = new Date()
     let racha = null;
     let nivel = null;
 
-    if (acerto && destino.caja > cajaActual) {
+    if (acerto && destino.caja > cajaActual && !sinXp) {
       const usuario = await cliente.query(
         'SELECT xp, racha, ultima_actividad FROM usuarios WHERE id = $1 FOR UPDATE',
         [usuarioId],
@@ -90,7 +93,36 @@ export async function responder(tarjetaId, acerto, usuarioId, fecha = new Date()
 
     await cliente.query('COMMIT');
 
-    return { ...destino, xp_ganado: xpGanado, xp_total: xpTotal, racha, nivel };
+    return { ...destino, xp_ganado: xpGanado, xp_total: xpTotal, racha, nivel, sin_xp: sinXp };
+  } catch (error) {
+    await cliente.query('ROLLBACK');
+    throw error;
+  } finally {
+    cliente.release();
+  }
+}
+
+/**
+ * Devuelve al día de hoy todas las tarjetas publicadas del curso para este alumno.
+ * Las marca sin XP: ya fueron premiadas en su primera ronda, así que repasarlas
+ * no puede inflar el XP ni la racha. Solo afecta a las tarjetas del curso del alumno.
+ */
+export async function reiniciar(cursoId, usuarioId) {
+  const cliente = await pool.connect();
+  try {
+    await cliente.query('BEGIN');
+    const { rowCount } = await cliente.query(
+      `INSERT INTO progreso_tarjetas (usuario_id, tarjeta_id, caja, proxima_revision, sin_xp)
+       SELECT $1, t.id, 1, CURRENT_DATE, true
+         FROM tarjetas t
+         JOIN lecciones l ON l.id = t.leccion_id AND l.publicada = true
+        WHERE l.curso_id = $2
+       ON CONFLICT (usuario_id, tarjeta_id)
+       DO UPDATE SET caja = 1, proxima_revision = CURRENT_DATE, sin_xp = true`,
+      [usuarioId, cursoId],
+    );
+    await cliente.query('COMMIT');
+    return { reiniciadas: rowCount };
   } catch (error) {
     await cliente.query('ROLLBACK');
     throw error;

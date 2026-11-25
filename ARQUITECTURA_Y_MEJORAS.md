@@ -244,6 +244,9 @@ Ambos servicios filtran **dos veces**: primero el middleware de pertenencia y lu
 3. Llama a `siguienteRevision`.
 4. Hace UPSERT en `progreso_tarjetas`.
 5. Guarda el acierto/fallo en `respuestas_repaso` para el reporte.
+6. Si acierta y sube de caja, suma XP; salvo que la tarjeta esté marcada `sin_xp` (viene de un reinicio) o ya esté en la caja 5.
+
+`reiniciar(cursoId, usuarioId)` devuelve a `CURRENT_DATE` todas las tarjetas publicadas del curso del alumno, las pone en la caja 1 y fija `sin_xp = true`. El UPSERT anterior no sobrescribe esa marca, así que la segunda ronda sirve para estudiar pero nunca para sumar XP.
 
 `utilidades/leitner.js`:
 
@@ -357,6 +360,7 @@ Estas no tocan base de datos, por eso son fáciles de probar:
 | POST | `/quiz/resultado` | Alumno |
 | GET | `/cursos/:cursoId/repaso/hoy` | Alumno inscrito |
 | POST | `/repaso/respuesta` | Alumno inscrito |
+| POST | `/cursos/:cursoId/repaso/reiniciar` | Alumno inscrito |
 | GET | `/panel/alumno` | Alumno |
 | GET | `/panel/maestro` | Maestro |
 | GET | `/panel/maestro/reporte` | Maestro |
@@ -453,7 +457,7 @@ Luego hay funciones por recurso: `login`, `registrarMaestro`, `listarCursos`, `c
 |---|---|---|
 | `/panel` | PanelAlumno | XP, racha, nivel, progreso. Tu parche evita el crash cuando `cursos` llega como número. |
 | `/curso/:id` | CursoAlumno | Lecciones publicadas del curso. |
-| `/repaso/:cursoId` | Repaso | Flashcards, giro con teclado, «Lo sabía» / «No lo sabía», resumen final. |
+| `/repaso/:cursoId` | Repaso | Flashcards, giro con teclado, «Lo sabía» / «No lo sabía», resumen final, «Ver tarjetas de mis lecciones» y «Reiniciar tarjetas (sin XP)». |
 | `/quiz/:leccionId` | Quiz | Una pregunta a la vez, feedback inmediato y XP final. |
 | `/cursos` | Cursos | Lista de cursos inscritos. |
 | `/lecciones/:id/tarjetas` | Tarjetas | Consulta de tarjetas. |

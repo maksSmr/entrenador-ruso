@@ -5,7 +5,7 @@ const release = jest.fn();
 const connect = jest.fn(() => ({ query, release }));
 jest.unstable_mockModule('../src/config/baseDatos.js', () => ({ pool: { query, connect } }));
 
-const { responder, repasoDeHoy } = await import('../src/servicios/repaso.servicio.js');
+const { responder, repasoDeHoy, reiniciar } = await import('../src/servicios/repaso.servicio.js');
 const { ErrorApi } = await import('../src/utilidades/errorApi.js');
 
 beforeEach(() => {
@@ -36,6 +36,7 @@ describe('servicio de repaso', () => {
       xp_total: 120,
       racha: 7,
       nivel: 2,
+      sin_xp: false,
     });
     expect(query.mock.calls[3][1]).toEqual([3, 8, 5, '2026-06-30']);
     expect(query.mock.calls[4][1]).toEqual([3, 8, true]);
@@ -85,12 +86,57 @@ describe('servicio de repaso', () => {
     expect(query).toHaveBeenCalledTimes(6);
   });
 
+  test('una tarjeta reiniciada sube de caja pero NO da XP', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 8, curso_id: 1 }] })
+      .mockResolvedValueOnce({ rows: [{ caja: 4, sin_xp: true }] })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
+
+    const resultado = await responder(8, true, 3);
+
+    expect(resultado.caja).toBe(5);
+    expect(resultado.xp_ganado).toBe(0);
+    expect(resultado.sin_xp).toBe(true);
+    expect(query).toHaveBeenCalledTimes(6); // no consulta ni actualiza usuarios
+  });
+
   test('repaso de hoy trae tarjetas sin progreso como pendientes', async () => {
-    query.mockResolvedValueOnce({ rows: [{ id: 8, caja: 1 }] });
+    query.mockResolvedValueOnce({ rows: [{ id: 8, caja: 1, sin_xp: false }] });
 
     const tarjetas = await repasoDeHoy(1, 3);
 
     expect(tarjetas).toHaveLength(1);
+    expect(tarjetas[0].sin_xp).toBe(false);
     expect(query.mock.calls[0][1]).toEqual([1, 3]);
+  });
+
+  test('reiniciar devuelve las tarjetas del curso a hoy y las marca sin XP', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 4 }) // UPSERT
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
+
+    const resultado = await reiniciar(1, 3);
+
+    expect(resultado).toEqual({ reiniciadas: 4 });
+    const [consulta, parametros] = query.mock.calls[1];
+    expect(consulta).toContain('sin_xp = true');
+    expect(parametros).toEqual([3, 1]);
+    expect(query.mock.calls[2][0]).toBe('COMMIT');
+    expect(release).toHaveBeenCalled();
+  });
+
+  test('si falla el reinicio se hace rollback', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockRejectedValueOnce(new Error('fallo de base de datos'))
+      .mockResolvedValueOnce({ rows: [] });
+
+    await expect(reiniciar(1, 3)).rejects.toThrow('fallo de base de datos');
+    expect(query.mock.calls[2][0]).toBe('ROLLBACK');
+    expect(release).toHaveBeenCalled();
   });
 });

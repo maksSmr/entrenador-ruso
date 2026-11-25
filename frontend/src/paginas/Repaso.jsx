@@ -6,7 +6,7 @@ import BarraProgreso from '../moleculas/BarraProgreso';
 import TarjetaPalabra from '../moleculas/TarjetaPalabra';
 import { EstadoCarga, EstadoError, EstadoVacio } from '../moleculas/Estado';
 import { useAutenticacion } from '../hooks/useAutenticacion';
-import { listarMisCursos, listarRepaso, responderRepaso } from '../servicios/api';
+import { listarMisCursos, listarRepaso, responderRepaso, reiniciarRepaso } from '../servicios/api';
 
 /** Componente presentacional de una tarjeta de repaso (fácil de probar con RTL). */
 export function TarjetaRepaso({ tarjeta, idioma = 'ruso', volteada, onVoltear, onResponder, respondiendo = false }) {
@@ -53,7 +53,10 @@ export default function Repaso() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [errorRespuesta, setErrorRespuesta] = useState('');
+  const [errorReinicio, setErrorReinicio] = useState('');
   const [xpGanado, setXpGanado] = useState(0);
+  const [sinXp, setSinXp] = useState(false);
+  const [reiniciando, setReiniciando] = useState(false);
   const [respondiendo, setRespondiendo] = useState(false);
   const [finalizado, setFinalizado] = useState(false);
 
@@ -65,7 +68,9 @@ export default function Repaso() {
         listarRepaso(cursoId, token),
         listarMisCursos(token).catch(() => []),
       ]);
-      setTarjetas(Array.isArray(datosTarjetas) ? datosTarjetas : []);
+      const lista = Array.isArray(datosTarjetas) ? datosTarjetas : [];
+      setTarjetas(lista);
+      setSinXp(lista.some((tarjeta) => tarjeta.sin_xp));
       const curso = (datosCursos || []).find((item) => String(item.id) === String(cursoId));
       if (curso?.idioma) setIdioma(curso.idioma);
     } catch (errorApi) {
@@ -102,6 +107,28 @@ export default function Repaso() {
     }
   };
 
+  // Trae todas las tarjetas del curso al día de hoy. El backend las marca "sin XP":
+  // es una segunda ronda para repasar, no una forma de volver a ganar puntos.
+  const reiniciar = async () => {
+    setReiniciando(true);
+    setErrorReinicio('');
+    try {
+      await reiniciarRepaso(cursoId, token);
+      setIndice(0);
+      setVolteada(false);
+      setAciertos(0);
+      setFallos(0);
+      setXpGanado(0);
+      setFinalizado(false);
+      await cargar();
+      setSinXp(true);
+    } catch (errorApi) {
+      setErrorReinicio(errorApi.message || 'No se pudieron reiniciar las tarjetas.');
+    } finally {
+      setReiniciando(false);
+    }
+  };
+
   const tarjeta = tarjetas[indice];
 
   return (
@@ -116,14 +143,27 @@ export default function Repaso() {
 
         {cargando ? <EstadoCarga mensaje="Preparando tus tarjetas…" /> : null}
         {error ? <EstadoError mensaje={error} onReintentar={cargar} /> : null}
+        {errorReinicio ? (
+          <p className="aviso aviso--error" role="alert">
+            ⚠ {errorReinicio}
+          </p>
+        ) : null}
         {!cargando && !error && tarjetas.length === 0 ? (
           <EstadoVacio
             titulo="¡Todo al día!"
-            mensaje="No tienes tarjetas pendientes hoy. Vuelve mañana o practica con un quiz."
+            mensaje="No tienes tarjetas pendientes hoy. Puedes ver las de tu lección o reiniciarlas para repasar sin XP."
           >
-            <Link className="enlace-boton" to="/panel">
-              Volver a mi panel
-            </Link>
+            <div className="fila-acciones">
+              <Link className="enlace-boton" to={`/curso/${cursoId}`}>
+                Ver tarjetas de mis lecciones
+              </Link>
+              <Boton onClick={reiniciar} disabled={reiniciando}>
+                {reiniciando ? 'Reiniciando…' : 'Reiniciar tarjetas (sin XP)'}
+              </Boton>
+              <Link className="enlace-sutil" to="/panel">
+                Volver a mi panel
+              </Link>
+            </div>
           </EstadoVacio>
         ) : null}
 
@@ -134,20 +174,27 @@ export default function Repaso() {
                 <h2>🎉 Repaso completado</h2>
                 <p>
                   Acertaste {aciertos} de {tarjetas.length} tarjetas. Fallaste {fallos}.
-                  {xpGanado ? ` Ganaste ${xpGanado} XP.` : ''}
+                  {sinXp ? ' Esta ronda no suma XP: son tarjetas reiniciadas.' : ''}
+                  {!sinXp && xpGanado ? ` Ganaste ${xpGanado} XP.` : ''}
                 </p>
                 <div className="fila-acciones">
-                  <Link className="enlace-boton" to="/panel">
+                  <Link className="enlace-boton" to={`/curso/${cursoId}`}>
+                    Ver tarjetas de mis lecciones
+                  </Link>
+                  <Boton onClick={cargar}>Ver pendientes de hoy</Boton>
+                  <Boton variante="fantasma" onClick={reiniciar} disabled={reiniciando}>
+                    {reiniciando ? 'Reiniciando…' : 'Reiniciar y repasar sin XP'}
+                  </Boton>
+                  <Link className="enlace-sutil" to="/panel">
                     Volver a mi panel
                   </Link>
-                  <Boton onClick={cargar}>Repasar de nuevo</Boton>
                 </div>
               </div>
             ) : (
               <>
                 <p className="texto-pequeno">
                   Tarjeta {indice + 1} de {tarjetas.length} · {aciertos} aciertos · {fallos} fallos
-                  {xpGanado ? ` · +${xpGanado} XP` : ''}
+                  {sinXp ? ' · sin XP' : xpGanado ? ` · +${xpGanado} XP` : ''}
                 </p>
                 <BarraProgreso
                   valor={indice}

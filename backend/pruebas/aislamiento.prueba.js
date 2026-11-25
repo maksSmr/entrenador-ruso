@@ -73,6 +73,22 @@ describe('aislamiento entre maestros con supertest', () => {
     expect(respuesta.status).toBe(403);
   });
 
+  test('un alumno no puede reiniciar un curso donde no está inscrito', async () => {
+    const respuesta = await request(app)
+      .post('/cursos/5/repaso/reiniciar')
+      .set('Authorization', `Bearer ${tokenAlumno}`);
+
+    expect(respuesta.status).toBe(404);
+  });
+
+  test('un maestro no puede reiniciar el repaso', async () => {
+    const respuesta = await request(app)
+      .post('/cursos/5/repaso/reiniciar')
+      .set('Authorization', `Bearer ${tokenMaestroA}`);
+
+    expect(respuesta.status).toBe(403);
+  });
+
   test('sin token no se accede a cursos', async () => {
     const respuesta = await request(app).get('/cursos');
     expect(respuesta.status).toBe(401);

@@ -100,6 +100,8 @@ Aquí está la magia del **repaso espaciado**:
 
 Las tarjetas que ya están en la caja 5 no dan XP, para que no puedas repetir «Lo sabía» solo a ganar puntos. El sistema te muestra hasta **20 tarjetas al día**, solo las que tocan hoy. Al terminar ves un resumen con los XP ganados.
 
+Cuando no queden tarjetas para hoy verás «¡Todo al día!». Desde ahí puedes pulsar **Ver tarjetas de mis lecciones** para volver a consultarlas, o **Reiniciar tarjetas (sin XP)** para traerlas otra vez al día de hoy y repasarlas desde la caja 1. Esa segunda ronda **no suma XP**: las tarjetas reiniciadas quedan marcadas como «sin XP», así que no hay forma de ganar puntos repitiéndolas. Lo mismo ves al terminar una ronda reiniciada.
+
 ### 2.5 Haces el quiz
 
 De 4 a 10 preguntas de 4 opciones, mezcladas. Hay dos estilos:

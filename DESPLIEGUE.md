@@ -1,6 +1,6 @@
 # Despliegue gratuito (Render + Vercel + Neon)
 
-Todo el código ya está preparado para desplegarse sin servidor propio. Solo hacen falta tres cuentas: **GitHub**, **Neon** (PostgreSQL) y los servicios que quieras activar (Render/Vercel). La base de datos Neon actual ya tiene las migraciones `001` a `007` y la semilla aplicadas.
+Todo el código ya está preparado para desplegarse sin servidor propio. Solo hacen falta tres cuentas: **GitHub**, **Neon** (PostgreSQL) y los servicios que quieras activar (Render/Vercel). La base de datos Neon actual ya tiene las migraciones `001` a `007` y la semilla aplicadas. Aplica también la `008` antes de probar el reinicio del repaso.
 
 ## 1. Lo que ya está resuelto en el código
 
@@ -60,9 +60,10 @@ En una BD nueva, ejecuta en el SQL Editor de Neon **en este orden**:
 5. `backend/migraciones/005_webhook_idempotencia.sql`
 6. `backend/migraciones/006_respuestas_repaso.sql`
 7. `backend/migraciones/007_verificacion_y_gemini.sql`
-8. `backend/semillas/001_datos_ejemplo.sql`
+8. `backend/migraciones/008_reinicio_sin_xp.sql`
+9. `backend/semillas/001_datos_ejemplo.sql`
 
-La `007` es idempotente: añade `token_verificacion_hash` y `expiracion_token_verificacion` a `usuarios`, y `nota_gramatical` a `tarjetas`.
+La `007` es idempotente: añade `token_verificacion_hash` y `expiracion_token_verificacion` a `usuarios`, y `nota_gramatical` a `tarjetas`. La `008` también es idempotente: añade `sin_xp` a `progreso_tarjetas` para que las tarjetas reiniciadas no vuelvan a dar XP.
 
 ## 4. Comandos en local (PowerShell)
 

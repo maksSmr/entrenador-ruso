@@ -47,7 +47,7 @@ XAMPP trae MySQL. El proyecto usa PostgreSQL (Supabase/Neon) por sus tipos, exte
 Se inscribe de inmediato con el código, pero no puede iniciar sesión hasta verificar. Así el código no se pierde si no abre el correo al momento.
 
 **¿Cómo se calcula el XP?**  
-10 XP por acierto (en el quiz y en el repaso cuando la tarjeta sube de caja), +20 si el quiz es perfecto y +10 extra al llegar a un múltiplo de 7 por primera vez ese día. Una tarjeta en la caja 5 ya no da XP, para evitar repetirla solo a sumar puntos.
+10 XP por acierto (en el quiz y en el repaso cuando la tarjeta sube de caja), +20 si el quiz es perfecto y +10 extra al llegar a un múltiplo de 7 por primera vez ese día. Una tarjeta en la caja 5 ya no da XP, para evitar repetirla solo a sumar puntos. Si se reinicia el repaso de un curso, sus tarjetas vuelven a la caja 1 pero quedan marcadas `sin_xp`: se pueden estudiar otra vez sin inflar el XP.
 
 **¿Cómo se decide la próxima revisión?**  
 Leitner de 5 cajas: 1, 2, 4, 7 y 15 días. Acertar sube una caja; fallar vuelve a la 1. «Hoy» se calcula en `America/Mexico_City`.

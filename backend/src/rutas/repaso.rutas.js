@@ -23,6 +23,17 @@ router.get(
 );
 
 router.post(
+  '/cursos/:cursoId/repaso/reiniciar',
+  verificarToken,
+  soloAlumno,
+  validarId('cursoId', 'idCurso'),
+  asincrono(accesoCurso),
+  asincrono(async (req, res) => {
+    res.json(await servicio.reiniciar(req.idCurso, req.usuario.id));
+  }),
+);
+
+router.post(
   '/repaso/respuesta',
   verificarToken,
   soloAlumno,
