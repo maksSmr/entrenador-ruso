@@ -1,6 +1,7 @@
 import { pool } from '../config/baseDatos.js';
 import { ErrorApi } from '../utilidades/errorApi.js';
 import { siguienteRevision } from '../utilidades/leitner.js';
+import { actualizarRacha, nivelPorXp } from '../utilidades/racha.js';
 
 const noEncontrado = () => new ErrorApi(404, 'Tarjeta no encontrada en tus cursos', 'no_encontrado');
 
@@ -24,36 +25,76 @@ export async function repasoDeHoy(cursoId, usuarioId) {
 }
 
 export async function responder(tarjetaId, acerto, usuarioId, fecha = new Date()) {
-  const { rows } = await pool.query(
-    `SELECT t.id, l.curso_id
-       FROM tarjetas t
-       JOIN lecciones l ON l.id = t.leccion_id AND l.publicada = true
-       JOIN inscripciones i ON i.curso_id = l.curso_id AND i.usuario_id = $2
-      WHERE t.id = $1`,
-    [tarjetaId, usuarioId],
-  );
-  if (!rows.length) throw noEncontrado();
+  const cliente = await pool.connect();
+  try {
+    await cliente.query('BEGIN');
 
-  const actual = await pool.query(
-    'SELECT caja FROM progreso_tarjetas WHERE usuario_id = $1 AND tarjeta_id = $2',
-    [usuarioId, tarjetaId],
-  );
-  const cajaActual = actual.rows.length ? actual.rows[0].caja : 1;
-  const destino = siguienteRevision(cajaActual, acerto, fecha);
+    const { rows } = await cliente.query(
+      `SELECT t.id, l.curso_id
+         FROM tarjetas t
+         JOIN lecciones l ON l.id = t.leccion_id AND l.publicada = true
+         JOIN inscripciones i ON i.curso_id = l.curso_id AND i.usuario_id = $2
+        WHERE t.id = $1`,
+      [tarjetaId, usuarioId],
+    );
+    if (!rows.length) throw noEncontrado();
 
-  await pool.query(
-    `INSERT INTO progreso_tarjetas (usuario_id, tarjeta_id, caja, proxima_revision)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (usuario_id, tarjeta_id)
-     DO UPDATE SET caja = EXCLUDED.caja, proxima_revision = EXCLUDED.proxima_revision`,
-    [usuarioId, tarjetaId, destino.caja, destino.proxima_revision],
-  );
+    const actual = await cliente.query(
+      'SELECT caja FROM progreso_tarjetas WHERE usuario_id = $1 AND tarjeta_id = $2',
+      [usuarioId, tarjetaId],
+    );
+    const cajaActual = actual.rows.length ? actual.rows[0].caja : 1;
+    const destino = siguienteRevision(cajaActual, acerto, fecha);
 
-  // Historial para el reporte: así "tarjetas más falladas" son datos reales.
-  await pool.query(
-    'INSERT INTO respuestas_repaso (usuario_id, tarjeta_id, acerto) VALUES ($1, $2, $3)',
-    [usuarioId, tarjetaId, acerto],
-  );
+    await cliente.query(
+      `INSERT INTO progreso_tarjetas (usuario_id, tarjeta_id, caja, proxima_revision)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (usuario_id, tarjeta_id)
+       DO UPDATE SET caja = EXCLUDED.caja, proxima_revision = EXCLUDED.proxima_revision`,
+      [usuarioId, tarjetaId, destino.caja, destino.proxima_revision],
+    );
 
-  return destino;
+    // Historial para el reporte: así "tarjetas más falladas" son datos reales.
+    await cliente.query(
+      'INSERT INTO respuestas_repaso (usuario_id, tarjeta_id, acerto) VALUES ($1, $2, $3)',
+      [usuarioId, tarjetaId, acerto],
+    );
+
+    // Solo suma XP cuando el acierto hace subir de caja. Repetir "Lo sabía" en la caja 5 no da XP.
+    let xpGanado = 0;
+    let xpTotal = null;
+    let racha = null;
+    let nivel = null;
+
+    if (acerto && destino.caja > cajaActual) {
+      const usuario = await cliente.query(
+        'SELECT xp, racha, ultima_actividad FROM usuarios WHERE id = $1 FOR UPDATE',
+        [usuarioId],
+      );
+      if (!usuario.rows.length) throw noEncontrado();
+
+      const anterior = usuario.rows[0];
+      const nuevoEstado = actualizarRacha(anterior.ultima_actividad, anterior.racha, fecha);
+      const bonusRacha =
+        nuevoEstado.racha !== anterior.racha && nuevoEstado.racha % 7 === 0 ? 10 : 0;
+      xpGanado = 10 + bonusRacha;
+      xpTotal = anterior.xp + xpGanado;
+      racha = nuevoEstado.racha;
+      nivel = nivelPorXp(xpTotal);
+
+      await cliente.query(
+        `UPDATE usuarios SET xp = $1, racha = $2, ultima_actividad = $3 WHERE id = $4`,
+        [xpTotal, racha, nuevoEstado.ultima_actividad, usuarioId],
+      );
+    }
+
+    await cliente.query('COMMIT');
+
+    return { ...destino, xp_ganado: xpGanado, xp_total: xpTotal, racha, nivel };
+  } catch (error) {
+    await cliente.query('ROLLBACK');
+    throw error;
+  } finally {
+    cliente.release();
+  }
 }

@@ -84,4 +84,18 @@ describe('práctica de todas las tarjetas de la lección', () => {
     expect(await screen.findByText(/práctica completada/i)).toBeInTheDocument();
     expect(screen.getByText(/acertaste 1 de 2 tarjetas\. fallaste 1/i)).toBeInTheDocument();
   });
+
+  it('muestra el XP ganado al acertar una tarjeta', async () => {
+    mockResponder.mockResolvedValue({ caja: 2, xp_ganado: 10 });
+
+    renderTarjetas('/lecciones/7/tarjetas?practica=1');
+
+    const primera = await screen.findByRole('button', { name: /tarjeta: мама/i });
+    fireEvent.keyDown(primera, { key: 'Enter' });
+    const botonSi = screen.getByRole('button', { name: 'Lo sabía: subir de caja' });
+    await waitFor(() => expect(botonSi).toBeEnabled());
+    fireEvent.click(botonSi);
+
+    expect(await screen.findByText(/\+10 XP/)).toBeInTheDocument();
+  });
 });

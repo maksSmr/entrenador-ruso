@@ -95,10 +95,10 @@ Entras a *Repasar* y ves tarjetas tipo flashcard:
 
 Aquí está la magia del **repaso espaciado**:
 
-- Si aciertas, la tarjeta sube de caja (de la 1 a la 5) y vuelve en **1, 2, 4, 7 o 15 días**.
-- Si fallas, vuelve a la **caja 1** y te aparece al día siguiente.
+- Si aciertas, la tarjeta sube de caja (de la 1 a la 5) y vuelve en **1, 2, 4, 7 o 15 días**. Sumas **10 XP** cada vez que sube de caja; si tu racha llega a 7, 14, 21… días, sumas **10 XP extra**.
+- Si fallas, vuelve a la **caja 1** y te aparece al día siguiente. No sumas XP.
 
-El sistema te muestra hasta **20 tarjetas al día**, solo las que tocan hoy. No pierdes tiempo con lo que ya dominas y sí insistes en lo que se te olvida. Al terminar ves un resumen.
+Las tarjetas que ya están en la caja 5 no dan XP, para que no puedas repetir «Lo sabía» solo a ganar puntos. El sistema te muestra hasta **20 tarjetas al día**, solo las que tocan hoy. Al terminar ves un resumen con los XP ganados.
 
 ### 2.5 Haces el quiz
 

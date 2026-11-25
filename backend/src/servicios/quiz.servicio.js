@@ -58,7 +58,8 @@ export async function guardarResultado({ leccion_id, puntaje, total }, usuarioId
     const nuevoEstado = actualizarRacha(anterior.ultima_actividad, anterior.racha, fecha);
     const xpBase = puntaje * 10;
     const bonusPerfecto = puntaje === total ? 20 : 0;
-    const bonusRacha = nuevoEstado.racha % 7 === 0 ? 10 : 0;
+    // El bonus se da al llegar a 7/14/21… una vez, no en cada quiz del mismo día.
+    const bonusRacha = nuevoEstado.racha !== anterior.racha && nuevoEstado.racha % 7 === 0 ? 10 : 0;
     const xpGanado = xpBase + bonusPerfecto + bonusRacha;
     const xpTotal = anterior.xp + xpGanado;
 

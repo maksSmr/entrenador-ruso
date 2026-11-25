@@ -53,6 +53,7 @@ export default function Repaso() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [errorRespuesta, setErrorRespuesta] = useState('');
+  const [xpGanado, setXpGanado] = useState(0);
   const [respondiendo, setRespondiendo] = useState(false);
   const [finalizado, setFinalizado] = useState(false);
 
@@ -84,7 +85,8 @@ export default function Repaso() {
     setRespondiendo(true);
     setErrorRespuesta('');
     try {
-      await responderRepaso({ tarjeta_id: tarjeta.id, acerto }, token);
+      const respuesta = await responderRepaso({ tarjeta_id: tarjeta.id, acerto }, token);
+      setXpGanado((valor) => valor + (respuesta?.xp_ganado || 0));
       if (acerto) setAciertos((valor) => valor + 1);
       else setFallos((valor) => valor + 1);
       setVolteada(false);
@@ -132,6 +134,7 @@ export default function Repaso() {
                 <h2>🎉 Repaso completado</h2>
                 <p>
                   Acertaste {aciertos} de {tarjetas.length} tarjetas. Fallaste {fallos}.
+                  {xpGanado ? ` Ganaste ${xpGanado} XP.` : ''}
                 </p>
                 <div className="fila-acciones">
                   <Link className="enlace-boton" to="/panel">
@@ -144,6 +147,7 @@ export default function Repaso() {
               <>
                 <p className="texto-pequeno">
                   Tarjeta {indice + 1} de {tarjetas.length} · {aciertos} aciertos · {fallos} fallos
+                  {xpGanado ? ` · +${xpGanado} XP` : ''}
                 </p>
                 <BarraProgreso
                   valor={indice}

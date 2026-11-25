@@ -18,6 +18,7 @@ export default function PracticaTarjetas({ tarjetas, idioma = 'ruso', onSalir })
   const [respondiendo, setRespondiendo] = useState(false);
   const [error, setError] = useState('');
   const [finalizado, setFinalizado] = useState(false);
+  const [xpGanado, setXpGanado] = useState(0);
 
   const tarjeta = tarjetas[indice];
 
@@ -28,6 +29,7 @@ export default function PracticaTarjetas({ tarjetas, idioma = 'ruso', onSalir })
     setFallos(0);
     setError('');
     setFinalizado(false);
+    setXpGanado(0);
   };
 
   const responder = async (acerto) => {
@@ -35,7 +37,8 @@ export default function PracticaTarjetas({ tarjetas, idioma = 'ruso', onSalir })
     setRespondiendo(true);
     setError('');
     try {
-      await responderRepaso({ tarjeta_id: tarjeta.id, acerto }, token);
+      const respuesta = await responderRepaso({ tarjeta_id: tarjeta.id, acerto }, token);
+      setXpGanado((valor) => valor + (respuesta?.xp_ganado || 0));
       if (acerto) setAciertos((valor) => valor + 1);
       else setFallos((valor) => valor + 1);
       setVolteada(false);
@@ -55,7 +58,10 @@ export default function PracticaTarjetas({ tarjetas, idioma = 'ruso', onSalir })
       {finalizado ? (
         <div className="tarjeta aviso aviso--exito" role="status">
           <h2>🎉 Práctica completada</h2>
-          <p>Acertaste {aciertos} de {tarjetas.length} tarjetas. Fallaste {fallos}.</p>
+          <p>
+            Acertaste {aciertos} de {tarjetas.length} tarjetas. Fallaste {fallos}.
+            {xpGanado ? ` Ganaste ${xpGanado} XP.` : ''}
+          </p>
           <div className="fila-acciones">
             <Boton onClick={reiniciar}>Practicar de nuevo</Boton>
             {onSalir ? (
@@ -67,6 +73,7 @@ export default function PracticaTarjetas({ tarjetas, idioma = 'ruso', onSalir })
         <>
           <p className="texto-pequeno">
             Tarjeta {indice + 1} de {tarjetas.length} · {aciertos} aciertos · {fallos} fallos
+            {xpGanado ? ` · +${xpGanado} XP` : ''}
           </p>
           <BarraProgreso valor={indice} maximo={tarjetas.length} etiqueta="Progreso de la práctica" />
           <TarjetaPalabra
