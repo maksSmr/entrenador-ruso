@@ -5,7 +5,7 @@ import Insignia from '../atomos/Insignia';
 import BarraProgreso from '../moleculas/BarraProgreso';
 import { EstadoCarga, EstadoError, EstadoVacio } from '../moleculas/Estado';
 import { useAutenticacion } from '../hooks/useAutenticacion';
-import { listarLecciones, obtenerCurso } from '../servicios/api';
+import { listarLecciones, listarMisCursos } from '../servicios/api';
 
 const DIAS_NUEVA = 7;
 
@@ -30,11 +30,13 @@ export default function CursoAlumno() {
     setCargando(true);
     setError('');
     try {
-      const [datosCurso, datosLecciones] = await Promise.all([
-        obtenerCurso(id, token),
+      // «/cursos/:id» es solo de maestro. El alumno saca el nombre de «/mis-cursos».
+      const [datosCursos, datosLecciones] = await Promise.all([
+        listarMisCursos(token),
         listarLecciones(id, token),
       ]);
-      setCurso(datosCurso);
+      const cursos = Array.isArray(datosCursos) ? datosCursos : [];
+      setCurso(cursos.find((curso) => String(curso.id) === String(id)) || null);
       setLecciones(Array.isArray(datosLecciones) ? datosLecciones : []);
     } catch (errorApi) {
       setError(errorApi.message);
