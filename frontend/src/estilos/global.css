@@ -216,7 +216,7 @@ main {
 
 .hero__ilustracion {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
   justify-items: center;
 }
 
@@ -234,9 +234,12 @@ main {
   display: block;
   font-size: 2rem;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .tarjeta-demo small {
+  display: block;
+  margin-top: 0.5rem;
   color: var(--color-texto-suave);
 }
 
@@ -274,6 +277,7 @@ main {
 .rejilla-metricas .tarjeta {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
 .metrica__valor {
@@ -649,7 +653,12 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  margin-top: 1.25rem;
   margin-bottom: 1.5rem;
+}
+
+.barra-plan > div p {
+  margin: 0.7rem 0 0;
 }
 
 .tabla-contenedor {
