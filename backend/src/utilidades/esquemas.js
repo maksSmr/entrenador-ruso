@@ -70,6 +70,7 @@ export const crearTarjetaEsquema = z.object({
   ejemplo_ruso: z.string().trim().max(500).nullable().optional().default(null),
   ejemplo_traduccion: z.string().trim().max(500).nullable().optional().default(null),
   audio_url: z.string().trim().url().max(500).nullable().optional().default(null),
+  nota_gramatical: z.string().trim().max(1000).nullable().optional().default(null),
 });
 
 export const actualizarTarjetaEsquema = crearTarjetaEsquema.partial().refine(

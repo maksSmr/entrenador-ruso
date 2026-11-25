@@ -5,6 +5,7 @@ import Boton from '../atomos/Boton';
 import Insignia from '../atomos/Insignia';
 import FormularioLeccion from '../organismos/FormularioLeccion';
 import FormularioTarjeta from '../organismos/FormularioTarjeta';
+import GeneradorTarjetasIA from '../organismos/GeneradorTarjetasIA';
 import { EstadoCarga, EstadoError, EstadoVacio } from '../moleculas/Estado';
 import { useAutenticacion } from '../hooks/useAutenticacion';
 import {
@@ -451,6 +452,20 @@ export default function MaestroCurso({ id: idProp }) {
                   ) : null}
                 </div>
               </section>
+            ) : null}
+
+            {leccionConTarjetas ? (
+              <div className="seccion">
+                <GeneradorTarjetasIA
+                  leccionId={leccionConTarjetas.id}
+                  token={token}
+                  onGuardadas={async () => {
+                    const actualizadas = await listarTarjetas(leccionConTarjetas.id, token);
+                    setTarjetas(Array.isArray(actualizadas) ? actualizadas : []);
+                    await cargar();
+                  }}
+                />
+              </div>
             ) : null}
 
             <section aria-labelledby="reporte-titulo" className="seccion">

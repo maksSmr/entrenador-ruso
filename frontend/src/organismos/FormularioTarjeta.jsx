@@ -11,6 +11,7 @@ const VACIO = {
   ejemplo_ruso: '',
   ejemplo_traduccion: '',
   audio_url: '',
+  nota_gramatical: '',
 };
 
 export default function FormularioTarjeta({ inicial, onSubmit, onCancelar, error, cargando = false }) {
@@ -34,6 +35,7 @@ export default function FormularioTarjeta({ inicial, onSubmit, onCancelar, error
       ejemplo_ruso: datos.ejemplo_ruso.trim() || null,
       ejemplo_traduccion: datos.ejemplo_traduccion.trim() || null,
       audio_url: datos.audio_url.trim() || null,
+      nota_gramatical: datos.nota_gramatical.trim() || null,
     });
     if (!inicial) setDatos({ ...VACIO });
   };
@@ -58,6 +60,7 @@ export default function FormularioTarjeta({ inicial, onSubmit, onCancelar, error
       </div>
       <AreaTexto id="tarjeta-ejemplo-ruso" etiqueta="Ejemplo en ruso" valor={datos.ejemplo_ruso} onChange={actualizar('ejemplo_ruso')} rows={2} />
       <AreaTexto id="tarjeta-ejemplo-traduccion" etiqueta="Traducción del ejemplo" valor={datos.ejemplo_traduccion} onChange={actualizar('ejemplo_traduccion')} rows={2} />
+      <AreaTexto id="tarjeta-nota-gramatical" etiqueta="Nota gramatical o contextual (opcional)" valor={datos.nota_gramatical} onChange={actualizar('nota_gramatical')} rows={2} />
       {error ? (
         <p className="aviso aviso--error" role="alert" aria-live="polite">
           {error}

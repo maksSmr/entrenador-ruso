@@ -30,6 +30,7 @@ jobs:
       JWT_SECRET: secreto-solo-para-ci-no-usar-en-produccion
       DB_SSL: 'false'
       FRONTEND_URL: http://localhost:5173
+  NODE_ENV: test
 
     steps:
       - uses: actions/checkout@v4
@@ -61,6 +62,7 @@ jobs:
             backend/migraciones/004_lecciones_libro.sql \
             backend/migraciones/005_webhook_idempotencia.sql \
             backend/migraciones/006_respuestas_repaso.sql \
+            backend/migraciones/007_verificacion_y_gemini.sql \
             backend/semillas/001_datos_ejemplo.sql
           do
             echo "Aplicando $archivo"

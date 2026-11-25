@@ -24,7 +24,7 @@ export async function listarPorLeccion(leccionId, usuario) {
 export async function crear(leccionId, maestroId, datos) {
   const {
     palabra, transliteracion, traduccion, imagen_url,
-    acento_posicion, ejemplo_ruso, ejemplo_traduccion, audio_url,
+    acento_posicion, ejemplo_ruso, ejemplo_traduccion, audio_url, nota_gramatical,
   } = datos;
 
   const existe = await pool.query(
@@ -41,13 +41,13 @@ export async function crear(leccionId, maestroId, datos) {
   const { rows } = await pool.query(
     `INSERT INTO tarjetas
        (leccion_id, palabra, transliteracion, traduccion, imagen_url,
-        acento_posicion, ejemplo_ruso, ejemplo_traduccion, audio_url)
-     SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9
+        acento_posicion, ejemplo_ruso, ejemplo_traduccion, audio_url, nota_gramatical)
+     SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
        FROM lecciones l JOIN cursos c ON c.id = l.curso_id
-      WHERE l.id = $1 AND c.maestro_id = $10
+      WHERE l.id = $1 AND c.maestro_id = $11
      RETURNING *`,
     [leccionId, palabra, transliteracion, traduccion, imagen_url,
-      acento_posicion, ejemplo_ruso, ejemplo_traduccion, audio_url, maestroId],
+      acento_posicion, ejemplo_ruso, ejemplo_traduccion, audio_url, nota_gramatical, maestroId],
   );
   if (!rows.length) throw noEncontrado();
   return rows[0];

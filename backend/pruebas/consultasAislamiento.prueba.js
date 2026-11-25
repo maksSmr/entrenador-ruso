@@ -42,7 +42,8 @@ describe('toda consulta SQL filtra por dueño', () => {
       palabra: 'а', transliteracion: 'a', traduccion: 'a',
     });
     expect(query.mock.calls[0][0]).toContain('c.maestro_id = $3');
-    expect(query.mock.calls[1][0]).toContain('c.maestro_id = $10');
+    expect(query.mock.calls[1][0]).toContain('c.maestro_id = $11');
+    expect(query.mock.calls[1][0]).toContain('nota_gramatical');
   });
 
   test('tarjetas y quiz del alumno pasan por inscripción', async () => {

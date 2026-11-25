@@ -179,6 +179,17 @@ export function importarCsv(leccionId, archivo, token) {
   });
 }
 
+/** Pide a Gemini sugerencias a partir de un PDF/DOCX. Devuelve tarjetas sin guardar. */
+export function generarTarjetasIA(leccionId, archivo, token) {
+  const datos = new FormData();
+  datos.append('archivo', archivo);
+  return peticion(`/lecciones/${leccionId}/generar-tarjetas`, {
+    metodo: 'POST',
+    archivo: datos,
+    token,
+  });
+}
+
 /* ------------------------------- QUIZ ----------------------------------- */
 
 export function obtenerQuiz(leccionId, cantidad = 4, token) {
@@ -253,6 +264,7 @@ export default {
   actualizarTarjeta,
   eliminarTarjeta,
   importarCsv,
+  generarTarjetasIA,
   obtenerQuiz,
   enviarResultadoQuiz,
   listarRepaso,

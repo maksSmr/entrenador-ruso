@@ -9,6 +9,7 @@ import {
   leccionDelMaestro,
 } from '../middlewares/pertenencia.js';
 import { subirCsv } from '../middlewares/subidaCsv.js';
+import { subirDocumento } from '../middlewares/subidaDocumento.js';
 import {
   crearLeccionEsquema,
   actualizarLeccionEsquema,
@@ -65,6 +66,17 @@ router.post(
   asincrono(leccionDelMaestro),
   subirCsv,
   asincrono(controlador.importarCsv),
+);
+
+// Gemini: solo el maestro dueño de la lección puede subir un PDF/DOCX y pedir sugerencias.
+router.post(
+  '/lecciones/:id/generar-tarjetas',
+  verificarToken,
+  soloMaestro,
+  validarId('id', 'idLeccion'),
+  asincrono(leccionDelMaestro),
+  subirDocumento,
+  asincrono(controlador.generarTarjetas),
 );
 
 router.put(

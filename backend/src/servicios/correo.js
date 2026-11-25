@@ -5,8 +5,8 @@ import { entorno } from '../config/entorno.js';
 const resend = entorno.resendApiKey ? new Resend(entorno.resendApiKey) : null;
 
 export async function enviarCorreo({ para, asunto, texto, html }) {
-  // Sin clave (desarrollo): se imprime el enlace en vez de fallar.
-  if (!resend) {
+  // Sin clave o fuera de producción: se imprime el enlace y el registro continúa.
+  if (!resend || entorno.nodeEnv !== 'production') {
     console.log(`\n--- CORREO SIMULADO para ${para} ---\n${asunto}\n${texto}\n-------------------------------\n`);
     return { simulado: true };
   }

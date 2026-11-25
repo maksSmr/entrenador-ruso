@@ -140,7 +140,7 @@ export async function iniciarSesion(email, contrasena) {
   }
 
   const token = jwt.sign(
-    { id: usuario.id, rol: usuario.rol },
+    { id: usuario.id, rol: usuario.rol, email_verificado: usuario.email_verificado },
     entorno.jwtSecret,
     { expiresIn: entorno.jwtExpira },
   );
@@ -152,6 +152,7 @@ export async function iniciarSesion(email, contrasena) {
       nombre: usuario.nombre,
       email: usuario.email,
       rol: usuario.rol,
+      email_verificado: true,
     },
   };
 }

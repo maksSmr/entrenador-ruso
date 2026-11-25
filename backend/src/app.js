@@ -19,7 +19,7 @@ const app = express();
 
 app.disable('x-powered-by');
 app.use(helmet());
-app.use(cors({ origin: entorno.frontendUrl, credentials: true }));
+app.use(cors({ origin: entorno.origenesPermitidos, credentials: true }));
 
 // Webhook primero: Stripe firma el body crudo, no el JSON ya parseado.
 app.use(rutasWebhook);
