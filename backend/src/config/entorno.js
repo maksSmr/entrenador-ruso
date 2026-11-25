@@ -9,7 +9,7 @@ if (faltantes.length) {
 }
 
 const nodeEnv = process.env.NODE_ENV ?? 'development';
-const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+const frontendUrl = process.env.FRONTEND_URL ?? 'https://entrenador-ruso.vercel.app';
 const origenesLocales = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
