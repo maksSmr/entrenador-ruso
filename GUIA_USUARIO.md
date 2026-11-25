@@ -40,7 +40,7 @@ Y de forma opcional: una imagen, un ejemplo de uso, la posición del acento, un 
 
 Puedes escribirlas una por una o **subir un archivo CSV** desde Excel o Google Sheets (hasta 500 filas). El sistema te dice cuántas entraron y cuántas se omitieron, sin romper nada.
 
-También puedes **generar tarjetas con IA**: dentro de la lección subes un **PDF o DOCX** del libro (máximo 5 MB) y Gemini propone palabras, transliteración, traducción, un ejemplo breve y una nota gramatical. Las sugerencias **no se guardan solas**: aparecen en pantalla para que las edites, descartes las que no sirvan y pulses «Guardar tarjetas revisadas». La clave de Gemini vive solo en el servidor.
+También puedes **generar tarjetas con IA**: dentro de la lección subes un **PDF o DOCX** del libro (máximo 5 MB) y Gemini propone palabras, transliteración, traducción, un ejemplo breve y una nota gramatical. Las sugerencias **no se guardan solas**: aparecen en pantalla para que las edites, descartes las que no sirvan y pulses «Guardar tarjetas revisadas». La clave de Gemini vive solo en el servidor. Si alguna tarjeta falla al guardarse, el panel conserva solo las fallidas y el botón cambia a «Reintentar tarjetas fallidas», sin volver a enviar las que ya se guardaron.
 
 ### 1.6 Invitas a tus alumnos
 

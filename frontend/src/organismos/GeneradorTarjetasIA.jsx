@@ -29,6 +29,7 @@ export default function GeneradorTarjetasIA({ leccionId, token, onGuardadas }) {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [idsFallidas, setIdsFallidas] = useState([]);
   const entradaArchivo = useRef(null);
 
   const incompletas = sugerencias.some(
@@ -60,6 +61,7 @@ export default function GeneradorTarjetasIA({ leccionId, token, onGuardadas }) {
 
   const descartar = (id) => {
     setSugerencias((anteriores) => anteriores.filter((tarjeta) => tarjeta.id !== id));
+    setIdsFallidas((anteriores) => anteriores.filter((fallida) => fallida !== id));
   };
 
   const generar = async () => {
@@ -70,12 +72,14 @@ export default function GeneradorTarjetasIA({ leccionId, token, onGuardadas }) {
     try {
       const respuesta = await generarTarjetasIA(leccionId, archivo, token);
       setSugerencias(preparar(respuesta?.sugerencias));
+      setIdsFallidas([]);
       setProcesados(Number(respuesta?.caracteres_procesados) || 0);
       if (!respuesta?.sugerencias?.length) {
         setMensaje('Gemini no encontró vocabulario útil en el documento.');
       }
     } catch (errorApi) {
       setSugerencias([]);
+      setIdsFallidas([]);
       setError(errorApi.message || 'No se pudieron generar las tarjetas.');
     } finally {
       setGenerando(false);
@@ -83,39 +87,58 @@ export default function GeneradorTarjetasIA({ leccionId, token, onGuardadas }) {
   };
 
   const guardar = async () => {
-    if (!sugerencias.length || incompletas) return;
+    if (!sugerencias.length || incompletas || guardando) return;
     setGuardando(true);
     setError('');
     setMensaje('');
-    let guardadas = 0;
+    const guardadas = [];
     const fallidas = [];
 
-    for (const tarjeta of sugerencias) {
-      const datos = {
-        palabra: tarjeta.palabra.trim(),
-        transliteracion: tarjeta.transliteracion.trim(),
-        traduccion: tarjeta.traduccion.trim(),
-        imagen_url: null,
-        acento_posicion: tarjeta.acento_posicion === '' ? null : Number(tarjeta.acento_posicion),
-        ejemplo_ruso: tarjeta.ejemplo_ruso.trim() || null,
-        ejemplo_traduccion: tarjeta.ejemplo_traduccion.trim() || null,
-        audio_url: null,
-        nota_gramatical: tarjeta.nota_gramatical.trim() || null,
-      };
-      try {
-        await crearTarjeta(leccionId, datos, token);
-        guardadas += 1;
-      } catch (errorApi) {
-        fallidas.push(`${tarjeta.palabra}: ${errorApi.message}`);
+    try {
+      // Secuencial a propósito: una petición cada vez para no saturar Neon ni el servidor.
+      for (const tarjeta of sugerencias) {
+        const datos = {
+          palabra: tarjeta.palabra.trim(),
+          transliteracion: tarjeta.transliteracion.trim(),
+          traduccion: tarjeta.traduccion.trim(),
+          imagen_url: null,
+          acento_posicion: tarjeta.acento_posicion === '' ? null : Number(tarjeta.acento_posicion),
+          ejemplo_ruso: tarjeta.ejemplo_ruso.trim() || null,
+          ejemplo_traduccion: tarjeta.ejemplo_traduccion.trim() || null,
+          audio_url: null,
+          nota_gramatical: tarjeta.nota_gramatical.trim() || null,
+        };
+        try {
+          await crearTarjeta(leccionId, datos, token);
+          guardadas.push(tarjeta);
+        } catch (errorApi) {
+          fallidas.push({
+            id: tarjeta.id,
+            palabra: tarjeta.palabra.trim(),
+            mensaje: errorApi.message || 'error desconocido',
+          });
+        }
       }
+    } finally {
+      setGuardando(false);
     }
 
-    setGuardando(false);
-    if (guardadas) {
-      setSugerencias((anteriores) => anteriores.filter((tarjeta) => fallidas.some((fallo) => fallo.startsWith(`${tarjeta.palabra}:`))));
-      setMensaje(`Se guardaron ${guardadas} tarjeta${guardadas === 1 ? '' : 's'}.`);
-      if (entradaArchivo.current) entradaArchivo.current.value = '';
-      setArchivo(null);
+    // Solo quedan en pantalla las que fallaron; nunca se reenvían las ya guardadas.
+    const idsFallidasActuales = new Set(fallidas.map((fallo) => fallo.id));
+    setIdsFallidas([...idsFallidasActuales]);
+    setSugerencias((anteriores) => anteriores.filter((tarjeta) => idsFallidasActuales.has(tarjeta.id)));
+
+    if (guardadas.length) {
+      setMensaje(
+        `Se guardaron ${guardadas.length} tarjeta${guardadas.length === 1 ? '' : 's'}.` +
+          (fallidas.length
+            ? ` Quedan ${fallidas.length} por guardar; pulsa «Reintentar tarjetas fallidas».`
+            : ''),
+      );
+      if (!fallidas.length) {
+        if (entradaArchivo.current) entradaArchivo.current.value = '';
+        setArchivo(null);
+      }
       if (onGuardadas) {
         try {
           await onGuardadas();
@@ -124,7 +147,12 @@ export default function GeneradorTarjetasIA({ leccionId, token, onGuardadas }) {
         }
       }
     }
-    if (fallidas.length) setError(`No se guardaron algunas tarjetas. ${fallidas.slice(0, 3).join(' · ')}`);
+    if (fallidas.length) {
+      setError(
+        `No se guardaron ${fallidas.length} tarjeta${fallidas.length === 1 ? '' : 's'}. ` +
+          fallidas.slice(0, 3).map((fallo) => `${fallo.palabra}: ${fallo.mensaje}`).join(' · '),
+      );
+    }
   };
 
   return (
@@ -153,7 +181,7 @@ export default function GeneradorTarjetasIA({ leccionId, token, onGuardadas }) {
           disabled={!sugerencias.length || incompletas}
           cargando={guardando}
         >
-          Guardar tarjetas revisadas
+          {idsFallidas.length ? 'Reintentar tarjetas fallidas' : 'Guardar tarjetas revisadas'}
         </Boton>
       </div>
       {incompletas ? (
