@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import Boton from '../atomos/Boton';
 import Campo from '../atomos/Campo';
 import { useAutenticacion } from '../hooks/useAutenticacion';
-import ReenvioVerificacion from './ReenvioVerificacion';
 
 export default function FormularioLogin() {
   const { login } = useAutenticacion();
@@ -12,7 +11,6 @@ export default function FormularioLogin() {
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
-  const [correoSinVerificar, setCorreoSinVerificar] = useState('');
   const referenciaMensaje = useRef(null);
 
   useEffect(() => {
@@ -24,7 +22,6 @@ export default function FormularioLogin() {
   const enviar = async (evento) => {
     evento.preventDefault();
     setError('');
-    setCorreoSinVerificar('');
     if (!email || !contrasena) {
       setError('Escribe tu correo y tu contraseña para continuar.');
       return;
@@ -35,14 +32,11 @@ export default function FormularioLogin() {
       const rol = datos?.usuario?.rol;
       navegar(rol === 'maestro' ? '/panel-maestro' : '/panel-alumno', { replace: true });
     } catch (errorApi) {
-      if (errorApi.codigo === 'correo_no_verificado') {
-        setCorreoSinVerificar(email);
-        setError('Tu correo todavía no está verificado. Revisa tu bandeja de entrada o solicita uno nuevo.');
-      } else if (errorApi.codigo === 'credenciales_invalidas') {
-        setError('Correo o contraseña incorrectos. Inténtalo de nuevo.');
-      } else {
-        setError(errorApi.message || 'No se pudo iniciar sesión.');
-      }
+      setError(
+        errorApi.codigo === 'credenciales_invalidas'
+          ? 'Correo o contraseña incorrectos. Inténtalo de nuevo.'
+          : errorApi.message || 'No se pudo iniciar sesión.',
+      );
     } finally {
       setCargando(false);
     }
@@ -76,7 +70,6 @@ export default function FormularioLogin() {
           </p>
         ) : null}
       </div>
-      {correoSinVerificar ? <ReenvioVerificacion email={correoSinVerificar} compacto /> : null}
       <Boton type="submit" cargando={cargando} className="boton--ancho">
         Entrar
       </Boton>

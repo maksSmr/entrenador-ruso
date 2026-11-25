@@ -5,7 +5,6 @@ import { entorno } from '../config/entorno.js';
 import { ErrorApi } from '../utilidades/errorApi.js';
 import {
   ROLES,
-  HORAS_VERIFICACION,
   HORAS_RESTABLECIMIENTO,
 } from '../utilidades/constantes.js';
 import * as tokens from './tokens.servicio.js';
@@ -16,7 +15,7 @@ import { contarRecurso, leerPlan } from './planes.servicio.js';
 const RONDAS_HASH = 10;
 const MENSAJE_GENERICO = 'Si el correo existe, te enviamos un enlace';
 
-// Para el alta no hace falta enviar correo: si falla, el registro continúa.
+// Solo se usa en recuperación de contraseña: si Resend falla, la petición continúa.
 async function enviarSinRomper(envio) {
   try {
     await envio();
@@ -168,21 +167,8 @@ export async function verificarCorreo(token) {
   return { mensaje: 'Correo verificado. Ya puedes iniciar sesión.' };
 }
 
-export async function reenviarVerificacion(email) {
-  const { rows } = await pool.query(
-    'SELECT id, email, email_verificado FROM usuarios WHERE email = $1',
-    [email],
-  );
-  const usuario = rows[0];
-
-  if (usuario && !usuario.email_verificado) {
-    await tokens.invalidarTokens(usuario.id, 'verificar_email');
-    const token = await tokens.crearToken(
-      usuario.id, 'verificar_email', HORAS_VERIFICACION,
-    );
-    await enviarSinRomper(() => correo.enviarVerificacion(usuario.email, token));
-  }
-
+export async function reenviarVerificacion() {
+  // Se mantiene por compatibilidad de API, pero ya no crea tokens ni envía correos.
   return { mensaje: MENSAJE_GENERICO };
 }
 

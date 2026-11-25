@@ -94,7 +94,7 @@ curl -i -X POST http://localhost:3000/auth/login \
 # 200 (sin pasar por correo)
 ```
 
-Los endpoints antiguos `/auth/verificar-correo` y `/auth/reenviar-verificacion` siguen existiendo por compatibilidad, pero ya no son obligatorios para entrar.
+Los endpoints antiguos `/auth/verificar-correo` y `/auth/reenviar-verificacion` siguen existiendo por compatibilidad, pero ya no envían correos ni son obligatorios para entrar.
 
 ## 4. Cursos, alumnos y códigos
 

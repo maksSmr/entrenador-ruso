@@ -20,7 +20,7 @@ jest.unstable_mockModule('../src/servicios/correo.js', () => ({
   enviarRestablecimiento,
 }));
 
-const { registrarMaestro, iniciarSesion } = await import('../src/servicios/autenticacion.servicio.js');
+const { registrarMaestro, iniciarSesion, reenviarVerificacion } = await import('../src/servicios/autenticacion.servicio.js');
 const { verificarToken } = await import('../src/middlewares/verificarToken.js');
 
 beforeEach(() => {
@@ -102,5 +102,14 @@ describe('registro y acceso sin verificación de correo', () => {
 
     expect(next).toHaveBeenCalledWith();
     expect(req.usuario).toEqual({ id: 9, rol: 'alumno' });
+  });
+
+  test('reenviar-verificacion ya no consulta la BD ni envía correos', async () => {
+    const respuesta = await reenviarVerificacion('otro@ejemplo.es');
+
+    expect(respuesta.mensaje).toEqual(expect.any(String));
+    expect(query).not.toHaveBeenCalled();
+    expect(enviarVerificacion).not.toHaveBeenCalled();
+    expect(enviarRestablecimiento).not.toHaveBeenCalled();
   });
 });

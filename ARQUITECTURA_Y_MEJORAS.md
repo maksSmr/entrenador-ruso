@@ -162,7 +162,7 @@ Configura Multer para recibir el CSV en memoria, con límite de **1 MB**.
 | `iniciarSesion` | Compara contraseña con bcrypt. Si falla, siempre dice `Credenciales inválidas` (no revela si el correo existe). No hay bloqueo por correo; firma un JWT con id/rol. |
 | `obtenerYo` | Devuelve id, nombre, email, rol, XP, racha y verificación. Lo usa el frontend al recargar. |
 | `verificarCorreo` | Consume el token y marca `email_verificado = true`. |
-| `reenviarVerificacion` | Invalida tokens anteriores y crea uno nuevo. Siempre responde el mismo mensaje genérico. |
+| `reenviarVerificacion` | Se conserva por compatibilidad, pero ya no crea tokens ni envía correos: responde el mensaje genérico. |
 | `olvideContrasena` | Crea token de 1 hora y envía correo. También responde genérico aunque el correo no exista. |
 | `restablecerContrasena` | Consume el token, hashea la nueva contraseña y marca los tokens como usados en una transacción. |
 
@@ -327,7 +327,7 @@ Estas no tocan base de datos, por eso son fáciles de probar:
 | POST | `/auth/registro-alumno` | Crear alumno con código de invitación. |
 | POST | `/auth/login` | Entrar y recibir JWT. |
 | POST | `/auth/verificar-correo` | Confirmar cuenta con token. |
-| POST | `/auth/reenviar-verificacion` | Reenviar enlace (máx. 3/h). |
+| POST | `/auth/reenviar-verificacion` | Compatibilidad: no envía nada, responde mensaje genérico. |
 | POST | `/auth/olvide-contrasena` | Enviar enlace de restablecimiento. |
 | POST | `/auth/restablecer-contrasena` | Guardar contraseña nueva. |
 | POST | `/stripe/webhook` | Recibir eventos de Stripe con firma verificada. |
@@ -397,8 +397,7 @@ frontend/src/
 ├── atomos/       Boton, Campo, Insignia, DocumentoTitulo
 ├── moleculas/    TarjetaCurso, BarraProgreso, TarjetaPalabra, Estado
 ├── organismos/   Encabezado, FormularioLogin, FormularioRegistro,
-│                 FormularioCurso, FormularioLeccion, FormularioTarjeta,
-│                 ReenvioVerificacion
+│                 FormularioCurso, FormularioLeccion, FormularioTarjeta
 ├── paginas/      todas las pantallas
 ├── contexto/     AutenticacionContexto
 ├── hooks/        useAutenticacion

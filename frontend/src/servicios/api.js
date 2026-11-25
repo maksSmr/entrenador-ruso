@@ -76,10 +76,6 @@ export function verificarCorreo(tokenVerificacion) {
   });
 }
 
-export function reenviarVerificacion(email) {
-  return peticion('/auth/reenviar-verificacion', { metodo: 'POST', cuerpo: { email } });
-}
-
 export function olvideContrasena(email) {
   return peticion('/auth/olvide-contrasena', { metodo: 'POST', cuerpo: { email } });
 }
@@ -246,7 +242,6 @@ export default {
   registrarAlumno,
   login,
   verificarCorreo,
-  reenviarVerificacion,
   olvideContrasena,
   restablecerContrasena,
   yo,

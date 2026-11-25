@@ -26,19 +26,8 @@ export async function enviarCorreo({ para, asunto, texto, html }) {
 const enlace = (ruta, token) =>
   `${entorno.frontendUrl}${ruta}?token=${encodeURIComponent(token)}`;
 
-export function enviarVerificacion(email, token) {
-  const url = enlace('/verificar-correo', token);
-  return enviarCorreo({
-    para: email,
-    asunto: 'Confirma tu correo para empezar',
-    texto: `Hola:\n\nConfirma tu correo para activar tu cuenta:\n${url}\n\nEl enlace vence en 24 horas.\n`,
-    html: `<div style="font-family:Arial,sans-serif"><p>Hola:</p>
-      <p>Confirma tu correo para activar tu cuenta.</p>
-      <p><a href="${url}" style="background:#2563eb;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px">Confirmar correo</a></p>
-      <p>O copia este enlace: ${url}</p><p>El enlace vence en 24 horas.</p></div>`,
-  });
-}
-
+// La verificación por correo se eliminó: el alta crea la cuenta verificada.
+// No existe enviarVerificacion para que ningún flujo pueda llamarlo por accidente.
 export function enviarRestablecimiento(email, token) {
   const url = enlace('/restablecer-contrasena', token);
   return enviarCorreo({

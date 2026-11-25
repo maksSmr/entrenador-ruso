@@ -43,7 +43,7 @@ describe('Formulario de login', () => {
     expect(mockLogin).toHaveBeenCalledWith('maestro@ejemplo.com', 'incorrecta');
   });
 
-  it('ofrece reenviar el correo si la cuenta no está verificada', async () => {
+  it('no ofrece reenviar correos: cualquier error se muestra como mensaje simple', async () => {
     const usuario = userEvent.setup();
     const error = new Error('Correo no verificado');
     error.codigo = 'correo_no_verificado';
@@ -54,7 +54,7 @@ describe('Formulario de login', () => {
     await usuario.type(screen.getByLabelText(/contraseña/i), 'password123');
     await usuario.click(screen.getByRole('button', { name: /entrar/i }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('todavía no está verificado');
-    expect(screen.getByRole('button', { name: /reenviar correo/i })).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Correo no verificado');
+    expect(screen.queryByRole('button', { name: /reenviar correo/i })).not.toBeInTheDocument();
   });
 });

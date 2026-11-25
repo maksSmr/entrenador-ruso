@@ -21,6 +21,7 @@ router.post('/registro-alumno', validar(registroAlumnoEsquema), asincrono(contro
 router.post('/login', limiteLogin, validar(loginEsquema), asincrono(controlador.login));
 
 router.post('/verificar-correo', validar(verificarCorreoEsquema), asincrono(controlador.verificarCorreo));
+// Compatibilidad: ya no envía correo, solo responde el mensaje genérico.
 router.post('/reenviar-verificacion', limiteReenvio, validar(reenviarVerificacionEsquema), asincrono(controlador.reenviarVerificacion));
 router.post('/olvide-contrasena', validar(olvideContrasenaEsquema), asincrono(controlador.olvideContrasena));
 router.post('/restablecer-contrasena', validar(restablecerContrasenaEsquema), asincrono(controlador.restablecerContrasena));

@@ -7,7 +7,6 @@ import Login from '../paginas/Login';
 
 const mockRegistrar = jest.fn();
 const mockVerificar = jest.fn();
-const mockReenviar = jest.fn();
 const mockLogin = jest.fn();
 
 jest.mock('../hooks/useAutenticacion', () => ({
@@ -18,7 +17,6 @@ jest.mock('../hooks/useAutenticacion', () => ({
 }));
 
 jest.mock('../servicios/api', () => ({
-  reenviarVerificacion: (...argumentos) => mockReenviar(...argumentos),
   verificarCorreo: (...argumentos) => mockVerificar(...argumentos),
 }));
 
@@ -28,7 +26,6 @@ beforeEach(() => {
     usuario: { id: 1, email: datos.email, rol: tipo, email_verificado: true },
   }));
   mockVerificar.mockReset().mockResolvedValue({});
-  mockReenviar.mockReset().mockResolvedValue({});
   mockLogin.mockReset();
 });
 
