@@ -11,7 +11,8 @@ import RegistroAlumno from '../paginas/RegistroAlumno';
 import VerificarCorreo from '../paginas/VerificarCorreo';
 import OlvideContrasena from '../paginas/OlvideContrasena';
 import RestablecerContrasena from '../paginas/RestablecerContrasena';
-import PanelAlumno from '../paginas/PanelAlumno';
+import PanelAlumnoConAccesos from '../paginas/PanelAlumnoConAccesos';
+import Estudiar from '../paginas/Estudiar';
 import CursoAlumno from '../paginas/CursoAlumno';
 import Repaso from '../paginas/Repaso';
 import Quiz from '../paginas/Quiz';
@@ -41,10 +42,18 @@ export default function Rutas() {
       <Route path="/pago-exitoso" element={<PagoExitoso />} />
 
       <Route
+        path="/estudiar"
+        element={
+          <RutaPorRol rol="alumno">
+            <Estudiar />
+          </RutaPorRol>
+        }
+      />
+      <Route
         path="/panel"
         element={
           <RutaPorRol rol="alumno">
-            <PanelAlumno />
+            <PanelAlumnoConAccesos />
           </RutaPorRol>
         }
       />
@@ -52,7 +61,7 @@ export default function Rutas() {
         path="/panel-alumno"
         element={
           <RutaPorRol rol="alumno">
-            <PanelAlumno />
+            <PanelAlumnoConAccesos />
           </RutaPorRol>
         }
       />

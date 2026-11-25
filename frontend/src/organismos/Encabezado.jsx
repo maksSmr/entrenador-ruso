@@ -34,7 +34,7 @@ export default function Encabezado() {
           {autenticado ? (
             <>
               <NavLink to={esMaestro ? '/panel-maestro' : '/panel-alumno'}>Mi panel</NavLink>
-              {esMaestro ? <NavLink to="/planes">Planes</NavLink> : null}
+              {esMaestro ? <NavLink to="/planes">Planes</NavLink> : <NavLink to="/estudiar">Estudiar</NavLink>}
             </>
           ) : (
             <>

@@ -77,9 +77,11 @@ En *Registro de alumno* pones tu nombre, correo, contraseña y el código que te
 
 Ves tu **XP**, tu **racha de días**, tu **nivel** y tu progreso. Cada 100 XP subes de nivel. La racha son los días seguidos que practicas: es el gancho para volver mañana.
 
+Al final del panel verás **Empieza a estudiar** → **Ir a mis cursos**. También puedes tocar **Estudiar** en el menú de arriba en cualquier momento: ahí aparecen tus cursos con un botón **Abrir curso** y otro **Repasar hoy**.
+
 ### 2.3 Abres tu curso
 
-Aparece la lista de lecciones publicadas. Las que tu maestro marcó para hoy llevan la etiqueta «Nueva de la clase». Las lecciones en borrador no existen para ti.
+Desde **Estudiar**, toca **Abrir curso** en el curso que quieras. Aparece la lista de lecciones publicadas. Las que tu maestro marcó para hoy llevan la etiqueta «Nueva de la clase». Las lecciones en borrador no existen para ti.
 
 En cada lección tienes tres acciones claras: **Practicar tarjetas** (todas las de esa lección, una por una), **Ver tarjetas** (el listado completo para consultar) y **Hacer quiz** (preguntas aleatorias). El botón «Repasar pendientes de hoy» de arriba es distinto: solo trae lo que toca hoy.
 
