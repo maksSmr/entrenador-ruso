@@ -26,9 +26,17 @@ export default function FormularioRegistro({ tipo = 'maestro' }) {
     }
     setCargando(true);
     try {
-      await registrar(datos, tipo);
-      // La confirmación vive en su propia página, con reenvío y acceso al login.
-      navegar(`/revisar-correo?email=${encodeURIComponent(datos.email)}`, { replace: true });
+      const respuesta = await registrar(datos, tipo);
+      if (respuesta?.token) {
+        // El backend ya devuelve JWT: entramos directos en el panel del rol.
+        const destino = tipo === 'alumno' || respuesta.usuario?.rol === 'alumno'
+          ? '/panel-alumno'
+          : '/panel-maestro';
+        navegar(destino, { replace: true });
+      } else {
+        // Compatibilidad con un backend antiguo que aún pidiera verificación.
+        navegar(`/revisar-correo?email=${encodeURIComponent(datos.email)}`, { replace: true });
+      }
     } catch (errorApi) {
       setError(
         errorApi.codigo === 'codigo_invalido'

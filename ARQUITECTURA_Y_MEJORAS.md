@@ -157,9 +157,9 @@ Configura Multer para recibir el CSV en memoria, con límite de **1 MB**.
 
 | Función | Qué hace |
 |---|---|
-| `registrarMaestro` | Crea usuario con contraseña hasheada con bcrypt (10 rondas), crea suscripción gratis, genera token de verificación de 24 h y guarda todo en una transacción. Si el correo falla, el registro no se pierde: solo se imprime el incidente. |
-| `registrarAlumno` | Busca el curso por `codigo_invitacion`, comprueba el límite de alumnos del maestro, crea el usuario, lo inscribe **de inmediato** y bloquea el login hasta verificar. Así el código no se pierde. |
-| `iniciarSesion` | Compara contraseña con bcrypt. Si falla, siempre dice `Credenciales inválidas` (no revela si el correo existe). Si el correo no está verificado → `403 correo_no_verificado`. Si todo bien, firma un JWT. |
+| `registrarMaestro` | Crea usuario con contraseña hasheada con bcrypt (10 rondas) y `email_verificado = true`, crea suscripción gratis y devuelve JWT + usuario en una transacción. No depende del correo. |
+| `registrarAlumno` | Busca el curso por `codigo_invitacion`, comprueba el límite del maestro, crea el usuario verificado, lo inscribe de inmediato y devuelve JWT + usuario. Entra sin verificar correo. |
+| `iniciarSesion` | Compara contraseña con bcrypt. Si falla, siempre dice `Credenciales inválidas` (no revela si el correo existe). No hay bloqueo por correo; firma un JWT con id/rol. |
 | `obtenerYo` | Devuelve id, nombre, email, rol, XP, racha y verificación. Lo usa el frontend al recargar. |
 | `verificarCorreo` | Consume el token y marca `email_verificado = true`. |
 | `reenviarVerificacion` | Invalida tokens anteriores y crea uno nuevo. Siempre responde el mismo mensaje genérico. |
@@ -178,9 +178,9 @@ Guardar solo el hash es importante: si se filtra la base de datos, no pueden rob
 
 ### Correo — `correo.js`
 
-- Sin `RESEND_API_KEY`: imprime en consola un bloque `--- CORREO SIMULADO ---`. Por eso pudiste verificar sin cuenta de Resend.
-- Con clave: usa Resend y envía texto + HTML.
-- Los enlaces apuntan a `/verificar-correo?token=...` y `/restablecer-contrasena?token=...`.
+- Sin `RESEND_API_KEY`: imprime en consola un bloque `--- CORREO SIMULADO ---`. El registro funciona igual.
+- Con clave: usa Resend y envía texto + HTML. No hay dependencia de Gmail ni Nodemailer.
+- Quedan los enlaces `/verificar-correo?token=...` (compatibilidad con cuentas antiguas) y `/restablecer-contrasena?token=...`.
 
 ### Cursos e inscripciones — `cursos.servicio.js`
 
@@ -444,8 +444,8 @@ Luego hay funciones por recurso: `login`, `registrarMaestro`, `listarCursos`, `c
 | `/login` | Login | Formulario con errores de campos vacíos, credenciales y correo no verificado. |
 | `/registro-maestro` | RegistroMaestro | Alta de maestro. |
 | `/registro-alumno` | RegistroAlumno | Alta con código de invitación. |
-| `/verificar-correo` | VerificarCorreo | Lee `?token=`, confirma y lleva al login automáticamente. |
-| `/revisar-correo` | RevisarCorreo | Pantalla tras el registro: correo, reenvío y acceso al login. |
+| `/verificar-correo` | VerificarCorreo | Compatibilidad: lee `?token=`, confirma y lleva al login. Ya no es obligatorio. |
+| `/revisar-correo` | RevisarCorreo | Compatibilidad con backends antiguos: correo, reenvío y acceso al login. |
 | `/olvide-contrasena` | OlvideContrasena | Pide el correo. |
 | `/restablecer-contrasena` | RestablecerContrasena | Guarda contraseña nueva. |
 | `/herramientas/ruso` | HerramientasRuso | Alfabeto, acento y teclado. |

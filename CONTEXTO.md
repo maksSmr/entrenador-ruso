@@ -88,9 +88,9 @@ Ver `PLAN.md` para el tablero completo. Estado actual:
 ## 7. Decisiones tomadas
 
 1. **Base de datos**: PostgreSQL en Neon/Supabase (o local), no XAMPP/MySQL. Se requiere BD nueva porque cambiaron tablas y campos (`palabra` en vez de `ruso`).
-2. **Registro de alumno por código**: inscribe de inmediato pero bloquea el login hasta verificar. Así el código no se pierde si el alumno no abre el correo en el momento.
+2. **Registro de alumno por código**: inscribe de inmediato y devuelve sesión (JWT). La cuenta nace verificada, así que el alumno entra sin depender del correo.
 3. **Aislamiento**: 404 para recursos de otro maestro, 403 solo para rol incorrecto. Además de los middlewares, las consultas SQL filtran por `maestro_id` o por inscripción.
-4. **Correo**: Resend si hay clave; en desarrollo se imprime el enlace en consola para poder probar sin dominio.
+4. **Correo**: Resend si hay clave; en desarrollo se imprime en consola. Ya no se necesita para registrarse ni para entrar; sigue sirviendo para restablecer contraseña y reenvíos manuales.
 5. **XP**: 10 por acierto, +20 por quiz perfecto y +10 cuando la racha llega a múltiplo de 7.
 6. **Leitner**: 5 cajas (1, 2, 4, 7, 15 días) con «hoy» en `America/Mexico_City`.
 7. **Reporte del maestro**: se guarda el historial real de aciertos/fallos en `respuestas_repaso` para poder mostrar las tarjetas más falladas.

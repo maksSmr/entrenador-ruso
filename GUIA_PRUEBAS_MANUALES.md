@@ -71,7 +71,7 @@ curl -i -H "Authorization: Bearer $LUCIA" http://localhost:3000/mis-cursos
 # 200: solo el curso 1
 ```
 
-## 3. Verificación de correo
+## 3. Registro y acceso directo (sin verificación)
 
 Registra un maestro nuevo sin `RESEND_API_KEY`:
 
@@ -79,33 +79,22 @@ Registra un maestro nuevo sin `RESEND_API_KEY`:
 curl -i -X POST http://localhost:3000/auth/registro-maestro \
   -H "Content-Type: application/json" \
   -d '{"nombre":"Prueba","email":"prueba@ejemplo.es","contrasena":"12345678"}'
-# 201 + usuario con email_verificado:false
+# 201 + { token, usuario } con email_verificado:true
 ```
 
-En la consola de la API aparece un bloque `--- CORREO SIMULADO ---` con un enlace. Copia el parámetro `token`.
+Guarda el `token` de la respuesta y úsalo directamente:
 
 ```bash
-curl -i -X POST http://localhost:3000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"prueba@ejemplo.es","contrasena":"12345678"}'
-# 403 correo_no_verificado
-
-curl -i -X POST http://localhost:3000/auth/verificar-correo \
-  -H "Content-Type: application/json" -d '{"token":"EL_TOKEN_DEL_ENLACE"}'
+curl -i -H "Authorization: Bearer EL_TOKEN_DEL_ALTA" http://localhost:3000/auth/yo
 # 200
 
 curl -i -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"prueba@ejemplo.es","contrasena":"12345678"}'
-# 200 (ya puede entrar)
+# 200 (sin pasar por correo)
 ```
 
-Reenvío (máximo 3 por hora):
-
-```bash
-curl -i -X POST http://localhost:3000/auth/reenviar-verificacion \
-  -H "Content-Type: application/json" -d '{"email":"prueba@ejemplo.es"}'
-```
+Los endpoints antiguos `/auth/verificar-correo` y `/auth/reenviar-verificacion` siguen existiendo por compatibilidad, pero ya no son obligatorios para entrar.
 
 ## 4. Cursos, alumnos y códigos
 
@@ -136,7 +125,7 @@ curl -i -X POST http://localhost:3000/cursos \
 # 409 limite_plan
 ```
 
-Registro de alumno por código (inscripción inmediata, acceso bloqueado hasta verificar):
+Registro de alumno por código (inscripción inmediata y sesión devuelta en la misma respuesta):
 
 ```bash
 curl -i -X POST http://localhost:3000/auth/registro-alumno \

@@ -82,9 +82,15 @@ export function ProveedorAutenticacion({ children }) {
     async (datos, tipo = 'maestro') => {
       setError(null);
       const respuesta = tipo === 'alumno' ? await api.registrarAlumno(datos) : await api.registrarMaestro(datos);
+      // El alta devuelve sesión (JWT + usuario): entramos sin pasar por el login.
+      if (respuesta?.token) {
+        guardarToken(respuesta.token);
+        setUsuario(respuesta.usuario || null);
+        setCargando(false);
+      }
       return respuesta;
     },
-    [],
+    [guardarToken],
   );
 
   const cerrarSesion = useCallback(() => {

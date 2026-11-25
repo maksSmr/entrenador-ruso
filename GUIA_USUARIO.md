@@ -10,7 +10,7 @@ Hay dos formas de vivirlo: eres **maestro** (creas y diriges el curso) o eres **
 
 ### 1.1 Creas tu cuenta
 
-Te registras con tu nombre, correo y contraseña. Al crear la cuenta, la web te lleva a **Revisa tu correo**: ahí ves tu dirección, puedes reenviar el enlace y tienes un botón para ir al login. Abres el correo y haces clic en el enlace de verificación: verás «Correo verificado» y te llevará **automáticamente al inicio de sesión**, con un aviso de confirmación. (En tu equipo de prueba, el enlace aparece impreso en la terminal en vez de llegar al correo.)
+Te registras con tu nombre, correo y contraseña y **entras directo en tu panel**. Ya no hace falta abrir ningún correo de confirmación. Resend se usa solo para cosas opcionales, como restablecer la contraseña.
 
 ### 1.2 Tu panel de maestro
 
@@ -71,7 +71,7 @@ Desde *Mi plan* ves cuánto estás usando y un botón para mejorar. El pago va p
 
 ### 2.1 Entras con el código
 
-En *Registro de alumno* pones tu nombre, correo, contraseña y el código que te dio tu maestro (`RUSO123`). Confirmas tu correo y **ya estás dentro de su curso**. No hay esperas ni aprobaciones.
+En *Registro de alumno* pones tu nombre, correo, contraseña y el código que te dio tu maestro (`RUSO123`). Al crear la cuenta **ya estás dentro de su curso**, sin confirmar correo, esperas ni aprobaciones.
 
 ### 2.2 Tu panel
 

@@ -54,7 +54,7 @@ En `vite.config.js` esa variable se inyecta con `define`; no hace falta reconstr
 2. Resend te dará registros **SPF** (TXT), **DKIM** (TXT/CNAME) y, si lo pide, **DMARC** (TXT).
 3. Cópialos en la configuración DNS de tu proveedor (Cloudflare, GoDaddy, etc.). Espera la verificación (puede tardar unas horas).
 4. Cambia `CORREO_REMITENTE` a algo como `Entrenador de Idiomas <hola@tudominio.com>`.
-5. Prueba de extremo a extremo en producción: regístrate con tu correo real, revisa la bandeja (y spam), abre el enlace `/verificar-correo?token=...`, confirma y comprueba que el login ya funciona.
+5. Prueba de extremo a extremo en producción: regístrate y comprueba que entras directo en tu panel. Después prueba `/olvide-contrasena` con tu correo real (revisa bandeja y spam) y confirma que `/restablecer-contrasena?token=...` funciona.
 
 ## 5. Stripe en modo prueba
 

@@ -44,7 +44,7 @@ Porque un 403 confirmaría que el recurso existe. El 404 no revela información 
 XAMPP trae MySQL. El proyecto usa PostgreSQL (Supabase/Neon) por sus tipos, extensiones y compatibilidad con el despliegue final.
 
 **¿Qué pasa si el alumno no verifica el correo?**  
-Se inscribe de inmediato con el código, pero no puede iniciar sesión hasta verificar. Así el código no se pierde si no abre el correo al momento.
+No pasa nada: la cuenta nace verificada, se inscribe con el código y recibe un JWT en el mismo registro. Resend solo se usa para flujos opcionales como recuperar la contraseña.
 
 **¿Cómo se calcula el XP?**  
 10 XP por acierto (en el quiz y en el repaso cuando la tarjeta sube de caja), +20 si el quiz es perfecto y +10 extra al llegar a un múltiplo de 7 por primera vez ese día. Una tarjeta en la caja 5 ya no da XP, para evitar repetirla solo a sumar puntos. Si se reinicia el repaso de un curso, sus tarjetas vuelven a la caja 1 pero quedan marcadas `sin_xp`: se pueden estudiar otra vez sin inflar el XP.

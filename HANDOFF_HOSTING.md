@@ -135,7 +135,7 @@ La BD Neon ya está lista con datos y con la migración `007` aplicada. No hay q
 
 1. Crear clave en Resend y ponerla en `RESEND_API_KEY`. Confirma que `NODE_ENV=production` en Render; si no, el enlace se seguirá imprimiendo en los logs.
 2. Para el correo de la cuenta de Resend sirve `onboarding@resend.dev`. Para otros destinatarios hay que verificar un dominio con SPF/DKIM/DMARC y cambiar `CORREO_REMITENTE`.
-3. Prueba real: registrarse con correo propio → abrir enlace `/verificar-correo?token=...` → entrar.
+3. Prueba real: registrarse con correo propio → entrar directo al panel. Después probar `/olvide-contrasena` y abrir `/restablecer-contrasena?token=...`.
 
 ### Paso 5b — Gemini (opcional pero suma puntos)
 

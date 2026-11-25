@@ -16,7 +16,7 @@ import { contarRecurso, leerPlan } from './planes.servicio.js';
 const RONDAS_HASH = 10;
 const MENSAJE_GENERICO = 'Si el correo existe, te enviamos un enlace';
 
-// Si Resend falla, el registro no se pierde: solo se registra el incidente.
+// Para el alta no hace falta enviar correo: si falla, el registro continúa.
 async function enviarSinRomper(envio) {
   try {
     await envio();
@@ -25,11 +25,31 @@ async function enviarSinRomper(envio) {
   }
 }
 
+function sesionPara(usuario) {
+  const token = jwt.sign(
+    { id: usuario.id, rol: usuario.rol, email_verificado: true },
+    entorno.jwtSecret,
+    { expiresIn: entorno.jwtExpira },
+  );
+
+  return {
+    token,
+    usuario: {
+      id: usuario.id,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      rol: usuario.rol,
+      email_verificado: true,
+    },
+  };
+}
+
 async function crearUsuario(cliente, { nombre, email, contrasena, rol }) {
   const contrasenaHash = await bcrypt.hash(contrasena, RONDAS_HASH);
+  // Alta directa: la cuenta nace verificada, sin depender de Resend ni de Gmail.
   const { rows } = await cliente.query(
-    `INSERT INTO usuarios (nombre, email, contrasena_hash, rol)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO usuarios (nombre, email, contrasena_hash, rol, email_verificado, verificado_en)
+     VALUES ($1, $2, $3, $4, true, NOW())
      RETURNING id, nombre, email, rol, email_verificado`,
     [nombre, email, contrasenaHash, rol],
   );
@@ -39,7 +59,6 @@ async function crearUsuario(cliente, { nombre, email, contrasena, rol }) {
 export async function registrarMaestro(datos) {
   const cliente = await pool.connect();
   let usuario;
-  let token;
 
   try {
     await cliente.query('BEGIN');
@@ -47,9 +66,6 @@ export async function registrarMaestro(datos) {
     await cliente.query(
       "INSERT INTO suscripciones (maestro_id, plan, estado) VALUES ($1, 'gratis', 'activa')",
       [usuario.id],
-    );
-    token = await tokens.crearToken(
-      usuario.id, 'verificar_email', HORAS_VERIFICACION, cliente,
     );
     await cliente.query('COMMIT');
   } catch (error) {
@@ -59,8 +75,8 @@ export async function registrarMaestro(datos) {
     cliente.release();
   }
 
-  await enviarSinRomper(() => correo.enviarVerificacion(usuario.email, token));
-  return usuario;
+  // Devolvemos sesión lista para usar. El correo de bienvenida es opcional.
+  return sesionPara(usuario);
 }
 
 export async function registrarAlumno({ codigo_invitacion, ...datos }) {
@@ -87,7 +103,6 @@ export async function registrarAlumno({ codigo_invitacion, ...datos }) {
 
   const cliente = await pool.connect();
   let usuario;
-  let token;
 
   try {
     await cliente.query('BEGIN');
@@ -100,15 +115,11 @@ export async function registrarAlumno({ codigo_invitacion, ...datos }) {
       throw new ErrorApi(409, 'Ya existe una cuenta con ese correo', 'email_duplicado');
     }
 
-    // Inscribimos de inmediato y bloqueamos el acceso hasta verificar.
-    // Así el código no se pierde si el alumno no abre el correo al momento.
+    // Inscripción inmediata y cuenta verificada: entra sin esperar correos.
     usuario = await crearUsuario(cliente, { ...datos, rol: ROLES.ALUMNO });
     await cliente.query(
       'INSERT INTO inscripciones (usuario_id, curso_id) VALUES ($1, $2)',
       [usuario.id, cursos[0].id],
-    );
-    token = await tokens.crearToken(
-      usuario.id, 'verificar_email', HORAS_VERIFICACION, cliente,
     );
     await cliente.query('COMMIT');
   } catch (error) {
@@ -118,13 +129,12 @@ export async function registrarAlumno({ codigo_invitacion, ...datos }) {
     cliente.release();
   }
 
-  await enviarSinRomper(() => correo.enviarVerificacion(usuario.email, token));
-  return usuario;
+  return sesionPara(usuario);
 }
 
 export async function iniciarSesion(email, contrasena) {
   const { rows } = await pool.query(
-    `SELECT id, nombre, email, rol, contrasena_hash, email_verificado
+    `SELECT id, nombre, email, rol, contrasena_hash
        FROM usuarios WHERE email = $1`,
     [email],
   );
@@ -135,26 +145,8 @@ export async function iniciarSesion(email, contrasena) {
     throw new ErrorApi(401, 'Credenciales inválidas', 'credenciales_invalidas');
   }
 
-  if (!usuario.email_verificado) {
-    throw new ErrorApi(403, 'Tu correo aún no está verificado', 'correo_no_verificado');
-  }
-
-  const token = jwt.sign(
-    { id: usuario.id, rol: usuario.rol, email_verificado: usuario.email_verificado },
-    entorno.jwtSecret,
-    { expiresIn: entorno.jwtExpira },
-  );
-
-  return {
-    token,
-    usuario: {
-      id: usuario.id,
-      nombre: usuario.nombre,
-      email: usuario.email,
-      rol: usuario.rol,
-      email_verificado: true,
-    },
-  };
+  // No hay bloqueo por verificación: cualquier cuenta con contraseña válida entra.
+  return sesionPara(usuario);
 }
 
 export async function obtenerYo(usuarioId) {
