@@ -10,7 +10,7 @@ Hay dos formas de vivirlo: eres **maestro** (creas y diriges el curso) o eres **
 
 ### 1.1 Creas tu cuenta
 
-Te registras con tu nombre, correo y contraseña. Abres tu correo, haces clic en el enlace de verificación y ya puedes entrar. (En tu equipo de prueba, el enlace aparece impreso en la terminal en vez de llegar al correo.)
+Te registras con tu nombre, correo y contraseña. Al crear la cuenta, la web te lleva a **Revisa tu correo**: ahí ves tu dirección, puedes reenviar el enlace y tienes un botón para ir al login. Abres el correo y haces clic en el enlace de verificación: verás «Correo verificado» y te llevará **automáticamente al inicio de sesión**, con un aviso de confirmación. (En tu equipo de prueba, el enlace aparece impreso en la terminal en vez de llegar al correo.)
 
 ### 1.2 Tu panel de maestro
 

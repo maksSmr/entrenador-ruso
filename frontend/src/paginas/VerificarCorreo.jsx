@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import DocumentoTitulo from '../atomos/DocumentoTitulo';
 import Boton from '../atomos/Boton';
 import Campo from '../atomos/Campo';
@@ -9,6 +9,7 @@ import { EstadoCarga } from '../moleculas/Estado';
 
 export default function VerificarCorreo() {
   const [parametros] = useSearchParams();
+  const navegar = useNavigate();
   const token = parametros.get('token');
   const [estado, setEstado] = useState(token ? 'verificando' : 'sin-token');
   const [email, setEmail] = useState('');
@@ -31,6 +32,16 @@ export default function VerificarCorreo() {
       activo = false;
     };
   }, [token]);
+
+  // Mostramos el éxito un momento y llevamos al login ya verificado.
+  useEffect(() => {
+    if (estado !== 'exito') return undefined;
+    const temporizador = setTimeout(
+      () => navegar('/login', { replace: true, state: { correoVerificado: true } }),
+      2500,
+    );
+    return () => clearTimeout(temporizador);
+  }, [estado, navegar]);
 
   useEffect(() => {
     if (referenciaMensaje.current) referenciaMensaje.current.focus();
@@ -55,7 +66,7 @@ export default function VerificarCorreo() {
           {estado === 'exito' ? (
             <>
               <h2>✅ Correo verificado</h2>
-              <p>Tu cuenta ya está activa. Ya puedes entrar y empezar a usar la plataforma.</p>
+              <p>Tu cuenta ya está activa. Te llevamos al inicio de sesión en unos segundos.</p>
               <Link className="boton boton--primario" to="/login">
                 Iniciar sesión
               </Link>

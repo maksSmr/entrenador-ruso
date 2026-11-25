@@ -9,6 +9,7 @@ import Registro from '../paginas/Registro';
 import RegistroMaestro from '../paginas/RegistroMaestro';
 import RegistroAlumno from '../paginas/RegistroAlumno';
 import VerificarCorreo from '../paginas/VerificarCorreo';
+import RevisarCorreo from '../paginas/RevisarCorreo';
 import OlvideContrasena from '../paginas/OlvideContrasena';
 import RestablecerContrasena from '../paginas/RestablecerContrasena';
 import PanelAlumnoConAccesos from '../paginas/PanelAlumnoConAccesos';
@@ -36,6 +37,7 @@ export default function Rutas() {
       <Route path="/registro-maestro" element={<RegistroMaestro />} />
       <Route path="/registro-alumno" element={<RegistroAlumno />} />
       <Route path="/verificar-correo" element={<VerificarCorreo />} />
+      <Route path="/revisar-correo" element={<RevisarCorreo />} />
       <Route path="/olvide-contrasena" element={<OlvideContrasena />} />
       <Route path="/restablecer-contrasena" element={<RestablecerContrasena />} />
       <Route path="/herramientas/ruso" element={<HerramientasRuso />} />

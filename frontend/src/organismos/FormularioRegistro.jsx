@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Boton from '../atomos/Boton';
 import Campo from '../atomos/Campo';
 import { useAutenticacion } from '../hooks/useAutenticacion';
-import ReenvioVerificacion from './ReenvioVerificacion';
 
 export default function FormularioRegistro({ tipo = 'maestro' }) {
   const { registrar } = useAutenticacion();
@@ -11,7 +10,6 @@ export default function FormularioRegistro({ tipo = 'maestro' }) {
   const [datos, setDatos] = useState({ nombre: '', email: '', contrasena: '', codigo_invitacion: '' });
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
-  const [correoEnviado, setCorreoEnviado] = useState('');
 
   const actualizar = (campo) => (valor) => setDatos((anterior) => ({ ...anterior, [campo]: valor }));
 
@@ -29,7 +27,8 @@ export default function FormularioRegistro({ tipo = 'maestro' }) {
     setCargando(true);
     try {
       await registrar(datos, tipo);
-      setCorreoEnviado(datos.email);
+      // La confirmación vive en su propia página, con reenvío y acceso al login.
+      navegar(`/revisar-correo?email=${encodeURIComponent(datos.email)}`, { replace: true });
     } catch (errorApi) {
       setError(
         errorApi.codigo === 'codigo_invalido'
@@ -40,23 +39,6 @@ export default function FormularioRegistro({ tipo = 'maestro' }) {
       setCargando(false);
     }
   };
-
-  if (correoEnviado) {
-    return (
-      <div className="aviso aviso--exito" role="status" aria-live="polite">
-        <h2>Revisa tu correo</h2>
-        <p>
-          Hemos enviado un enlace de verificación a <strong>{correoEnviado}</strong>. Ábrelo para activar tu
-          cuenta y después inicia sesión.
-        </p>
-        <p className="texto-pequeno">¿No te ha llegado? Revisa la carpeta de spam o solicita uno nuevo.</p>
-        <ReenvioVerificacion email={correoEnviado} />
-        <Boton variante="secundario" onClick={() => navegar('/login')}>
-          Ir a iniciar sesión
-        </Boton>
-      </div>
-    );
-  }
 
   return (
     <form className="formulario" onSubmit={enviar} noValidate>

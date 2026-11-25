@@ -1,8 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import DocumentoTitulo from '../atomos/DocumentoTitulo';
 import FormularioLogin from '../organismos/FormularioLogin';
 
 export default function Login() {
+  const { state } = useLocation();
+
   return (
     <>
       <DocumentoTitulo
@@ -14,6 +16,11 @@ export default function Login() {
         <h1>Inicia sesión</h1>
         <p className="texto-suave">Continúa con tus cursos, tarjetas y repaso diario.</p>
         <div className="tarjeta formulario-contenedor">
+          {state?.correoVerificado ? (
+            <p className="aviso aviso--exito" role="status">
+              ✅ Correo verificado. Ya puedes entrar con tu contraseña.
+            </p>
+          ) : null}
           <FormularioLogin />
         </div>
         <p className="texto-centro texto-pequeno">

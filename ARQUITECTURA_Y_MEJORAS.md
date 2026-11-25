@@ -444,7 +444,8 @@ Luego hay funciones por recurso: `login`, `registrarMaestro`, `listarCursos`, `c
 | `/login` | Login | Formulario con errores de campos vacíos, credenciales y correo no verificado. |
 | `/registro-maestro` | RegistroMaestro | Alta de maestro. |
 | `/registro-alumno` | RegistroAlumno | Alta con código de invitación. |
-| `/verificar-correo` | VerificarCorreo | Lee `?token=` y confirma. |
+| `/verificar-correo` | VerificarCorreo | Lee `?token=`, confirma y lleva al login automáticamente. |
+| `/revisar-correo` | RevisarCorreo | Pantalla tras el registro: correo, reenvío y acceso al login. |
 | `/olvide-contrasena` | OlvideContrasena | Pide el correo. |
 | `/restablecer-contrasena` | RestablecerContrasena | Guarda contraseña nueva. |
 | `/herramientas/ruso` | HerramientasRuso | Alfabeto, acento y teclado. |
